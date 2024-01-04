@@ -20,4 +20,4 @@ Additionally,other tests produce same stucked dealock:
 
 Env:
 FastDDS 2.13.0
-Ubuntu 22.04
+Ubuntu 22/20
