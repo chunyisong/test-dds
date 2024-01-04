@@ -11,3 +11,6 @@ Additionally,other tests produce same stucked dealock:
 3. Cmake options to compile fastdds,such is FASTDDS_STATISTICS or STRICT_REALTIME.
 4. Less data leads to a lower probability of deadlock.(such as ./test-dds pub 1 100)
 
+Env:
+FastDDS 2.13.0
+Ubuntu 22.04
