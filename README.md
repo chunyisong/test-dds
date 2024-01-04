@@ -1,39 +1,13 @@
-To launch this test open two different consoles:
+Deadlock appears be caused by write data and discovery entity threads using tcp transport on the writer side.
 
+To reproduce this bug, open two different consoles:
+In the first one for publisher: ./test-dds pub
+In the second one for subscriber: ./test-dds sub
 
-
-In the first one launch: ./DDSHelloWorldExample publisher (or DDSHelloWorldExample.exe publisher on windows).
-In the second one: ./DDSHelloWorldExample subscriber (or DDSHelloWorldExample.exe subscriber on windows).
-
-In order to use xml profiles (--env or shorcut -e cli flags):
-    - reference the xml profiles file setting the environment variable FASTRTPS_DEFAULT_PROFILES_FILE to its path.
-    - name it DEFAULT_FASTRTPS_PROFILES.xml and make sure the file is besides the DDSHelloWorldExample binary.
-The profile loaded will be the mark as default one with the corresponding attribute. For example:
-
-    <?xml version="1.0" encoding="UTF-8" ?>
-    <profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
-        <participant profile_name="name_is_mandatory" is_default_profile="true">
-            <rtps>
-                <name>Profiles example name</name>
-            </rtps>
-        </participant>
-        <data_writer profile_name="datawriter_name_is_mandatory" is_default_profile="true">
-            <qos>
-                <reliability>
-                    <kind>BEST_EFFORT</kind>
-                </reliability>
-            </qos>
-        </data_writer>
-        <data_reader profile_name="datareader_name_is_mandatory" is_default_profile="true">
-            <topic>
-                <historyQos>
-                    <kind>KEEP_LAST</kind>
-                    <depth>5</depth>
-                </historyQos>
-            </topic>
-        </data_reader>
-    </profiles>
-
-will create a participant called "Example dummy name" and modify the endpoint set up.
-Note the "profile_name" attribute is mandatory.
+Then the deadlock will most likely occur.If not writers not stucked,restart second console.
+Additionally,other tests produce same stucked dealock:
+1. Change Reliability of writers or readers
+2. Using discovery server (This is actual plan.Here using init peers for simplicity.)
+3. Cmake options to compile fastdds,such is FASTDDS_STATISTICS or STRICT_REALTIME.
+4. Less data leads to a lower probability of deadlock.(such as ./test-dds pub 1 100)
 
