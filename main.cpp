@@ -460,7 +460,6 @@ int testSub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint64_t waitingLoop
 
 int main(int argc, char *argv[])
 {
-    return 0;
     for (int i = 0; i < argc; i++)
     {
         std::cout << "arg(" << i << "," << argv[i] << ")" << std::endl;
