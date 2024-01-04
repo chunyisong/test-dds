@@ -1,0 +1,22 @@
+
+typedef unsigned short MeasurementKind;
+const MeasurementKind MK_ANALOG      = 65535; // 模拟量
+const MeasurementKind MK_DISCRETE    = 65534; // 离散量
+
+union MValue switch(MeasurementKind) // 4B + 2B
+{
+    case MK_ANALOG:
+        float av;
+    case MK_DISCRETE:
+        unsigned long dv;
+};
+
+struct MeasurementValue                      //16B
+{
+    @key
+    unsigned long long rid; // resource      // 8B
+    unsigned short q;       // quality       // 2B
+    MValue v;                                 // 6B
+};
+
+
