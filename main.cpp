@@ -479,7 +479,7 @@ int main(int argc, char *argv[])
         uint64_t totalDatas = argc > 4 ? std::stoull(argv[4]) : 0;
         uint16_t pubThreadCount = argc > 5 ? std::stoul(argv[5]) : 1;
         uint32_t durationMs = argc > 6 ? std::stoul(argv[6]) : 1;
-        int publishMode = argc > 7 ? std::stoi(argv[7]) : 1;
+        int publishMode = argc > 7 ? std::stoi(argv[7]) : 2;
         rt = testPub(stat, totalTopics, ridsPerTopic, totalDatas, pubThreadCount, durationMs, publishMode);
     }
     else {
