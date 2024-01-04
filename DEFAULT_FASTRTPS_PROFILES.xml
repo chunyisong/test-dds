@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="file:///Fast-DDS_ws/src/fastrtps/resources/xsd/fastRTPS_profiles.xsd"?>
 <dds>
-    <profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
-        <data_writer profile_name="publisher_profile">
-            <qos>
-                <partition>
-                    <names>
-                        <name>xj_ht_dd_*</name>
-                        <name>xj_ht_dcn_*</name>
-                    </names>
-                </partition>
-            </qos>
-        </data_writer>
         <data_writer profile_name="writer_profile" is_default_profile="true">
             <!-- <ignore_non_matching_locators>true</ignore_non_matching_locators> -->
             <historyMemoryPolicy>PREALLOCATED</historyMemoryPolicy>
@@ -22,8 +11,7 @@
                 </historyQos>
                 <resourceLimitsQos>
                     <max_samples_per_instance>1</max_samples_per_instance>
-                    <max_instances>2000000</max_instances><!--pub loan 用作构造缓存序列最大值,pub loan写数据貌似性能好一点 -->
-                    <allocated_samples>1000</allocated_samples><!--allocated+extra_samples pub loan用作构造缓存序列初始值 -->
+                    <allocated_samples>1000</allocated_samples>
                     <!-- <extra_samples>100</extra_samples> -->
                     <max_samples>0</max_samples>
                 </resourceLimitsQos>
@@ -34,22 +22,16 @@
                     <!-- <kind>AUTOMATIC</kind> -->
                     <kind>OFF</kind>
                 </data_sharing>
-                <!-- ASYNCHRONOUS mode uses internal thread sending data with a unlimited flow controller -->
                 <publishMode>
                     <!-- <kind>ASYNCHRONOUS</kind> -->
                     <kind>SYNCHRONOUS</kind>
                 </publishMode>
-                <!-- sample expires duration to be removed from history and transient and persistent caches -->
                 <lifespan>
                     <duration>
                         <sec>DURATION_INFINITY</sec>
                         <nanosec>0</nanosec>
                     </duration>
                 </lifespan>
-                <!-- raises an alarm when the frequency of new samples below a certain period,default c_TimeInfinite/DURATION_INFINITY;
-                    reader.deadline < writer.deadline is incompatible;deadline can be changed on enabled entities at runtime.
-                    该属性可以改变以便在需要删除writer/reader时先修改该值解除匹配然后删除对象;根据测试deadline非Infinite时极大降低性能;
-                -->
                 <deadline>
                     <period>
                         <sec>DURATION_INFINITY</sec>
@@ -70,8 +52,6 @@
                         <nanosec>0</nanosec>
                     </max_blocking_time>
                 </reliability>
-                <!-- disablePositiveAcks duration for the DataWriters keep the data before considering it as acknowledged
-                .Reducing network traffic when strict reliable communication is not required and bandwidth is limited -->
                 <disablePositiveAcks>
                     <enabled>true</enabled>
                     <duration>
@@ -79,7 +59,6 @@
                     </duration>
                 </disablePositiveAcks>
                 <liveliness>
-                    <!-- For writer side topic filter, writer using infinite liveliness/reader not using multicast/neither intra-process nor data-sharing Communication -->
                     <kind>AUTOMATIC</kind>
                     <lease_duration>
                         <sec>DURATION_INFINITY</sec>
@@ -115,19 +94,7 @@
                 </nackSupressionDuration>
             </times> -->
         </data_writer>
-        <data_reader profile_name="subscriber_profile">
-            <qos>
-                <partition>
-                    <!-- two partitions matche each other both direction;empty is default and only match empty and not matching any wildcards -->
-                    <names>
-                        <name>xj_ht_dd_*</name>
-                        <name>xj_ht_dcn_*</name>
-                    </names>
-                </partition>
-            </qos>
-        </data_reader>
         <data_reader profile_name="reader_profile" is_default_profile="true">
-            <!-- <ignore_non_matching_locators>true</ignore_non_matching_locators> -->
             <historyMemoryPolicy>PREALLOCATED</historyMemoryPolicy>
             <topic>
                 <historyQos>
@@ -137,7 +104,6 @@
                 <resourceLimitsQos>
                     <max_samples_per_instance>1</max_samples_per_instance>
                     <allocated_samples>1000</allocated_samples>
-                    <max_instances>2000000</max_instances><!-- sub loan 明确指定时性能貌似比0稍微好点;客户端应根据实际连接的发布者和应用数据需求评估需要处理多少资源rid -->
                     <extra_samples>100</extra_samples>
                     <max_samples>0</max_samples>
                 </resourceLimitsQos>
@@ -154,10 +120,6 @@
                         <nanosec>0</nanosec>
                     </duration>
                 </lifespan>
-                <!-- raises an alarm when the frequency of new samples below a certain period,default c_TimeInfinite/DURATION_INFINITY;
-                    reader.deadline < writer.deadline is incompatible;deadline can be changed on enabled entities at runtime.
-                    该属性可以改变以便在需要删除writer/reader时先修改该值解除匹配然后删除对象;根据测试deadline非Infinite时极大降低性能
-                -->
                 <deadline>
                     <period>
                         <sec>DURATION_INFINITY</sec>
@@ -169,16 +131,13 @@
                     <!-- <kind>TRANSIENT_LOCAL</kind> -->
                 </durability>
                 <reliability>
-                <!-- BEST_EFFORT_RELIABILITY_QOS make any durability qos as VOLATILE_DURABILITY_QOS. -->
                     <kind>BEST_EFFORT</kind>
                     <!-- <kind>RELIABLE</kind> -->
                 </reliability>
-                <!-- Reducing network traffic when strict reliable communication is not required and bandwidth is limited.Reliable时需要禁用该项 -->
                 <disablePositiveAcks>
                     <enabled>true</enabled>
                 </disablePositiveAcks>
                 <liveliness>
-                    <!-- For writer side topic filter, writer using infinite liveliness/reader not using multicast/neither intra-process nor data-sharing Communication -->
                     <!-- <kind>MANUAL_BY_PARTICIPANT</kind> -->
                     <kind>AUTOMATIC</kind>
                     <lease_duration>
@@ -206,31 +165,9 @@
         </data_reader>
         <transport_descriptors>
             <transport_descriptor>
-                <transport_id>transport_udp4</transport_id>
-                <type>UDPv4</type>
-                <!-- rtps data related packet headers>=52(rtpswireHeader20+submsgHeader>=24+serializeDataHeader4+dataPrefix4) -->
-                <!-- one RTPS data frame may include other submessages(Info_ts12+twohostInfo_dst16B+vendor60) with header total about 140B(88+52)-->
-                <!-- user data payload size should less than 1332B(mtu1500-ip20-udp8-rtpsExtra140) to avoid fragmented by ip level or dds level -->
-                <!-- Limit the ip datagrams size(include headers and payload) to mtu1500B,greater size will be fragmented by dds not ip level -->
-                <maxMessageSize>1300</maxMessageSize>
-                <!-- <sendBufferSize>16000000</sendBufferSize>
-                <receiveBufferSize>16000000</receiveBufferSize> -->
-                <!-- multicast Time to live, in number of hops,be careful to avoid flooding your network -->
-                <!-- <TTL>1</TTL> -->
-                <!-- Nonblocking is useful on high-frequency best-effort writers;
-                sending operations will return immediately if the buffer is full without error report, as sample is sent and lost  -->
-                <non_blocking_send>false</non_blocking_send>
-                <!-- <output_port>37001</output_port> -->
-                <interfaceWhiteList>
-                    <address>10.8.8.6</address>
-                    <!-- <interface>lo</interface> -->
-                </interfaceWhiteList>
-            </transport_descriptor>
-            <transport_descriptor>
                 <transport_id>transport_tcp4</transport_id>
                 <type>TCPv4</type>
                 <maxMessageSize>1300</maxMessageSize>
-                <!-- 依靠os 自动调节缓冲区 -->
                 <!-- <sendBufferSize>16000000</sendBufferSize> -->
                 <!-- <receiveBufferSize>16000000</receiveBufferSize> -->
                 <interfaceWhiteList>
@@ -240,115 +177,21 @@
                 <!-- <wan_addr>80.80.55.44</wan_addr> -->
                 <!-- <keep_alive_frequency_ms>5000</keep_alive_frequency_ms>
                 <keep_alive_timeout_ms>15000</keep_alive_timeout_ms> -->
-                <!-- 指定 listening_ports(physicalport)一侧为tcp server;注意:如果不适用writer相关接口,强烈建议屏蔽删除该配置项listening_ports -->
                 <listening_ports>
                     <port>18011</port>
                 </listening_ports>
-                <!-- TCP_NODELAY会禁用Nagle算法以减少实时通信时延时;该算法会等到对端返回ACK，或者待发送数据累积已快达到MSS批量发送提高吞吐量 -->
                 <enable_tcp_nodelay>false</enable_tcp_nodelay>
-                <!-- crc计算和校验对性能有一定影响 -->
                 <calculate_crc>false</calculate_crc>
                 <check_crc>false</check_crc>
             </transport_descriptor>
-            <transport_descriptor>
-                <transport_id>transport_shm</transport_id>
-                <!-- 注意:共享内存方式启动程序的用户 uid/gid 必须相同才能有权限访问 /dev/shm/ 下相关文件 -->
-                <type>SHM</type>
-                <!-- <sendBufferSize>16000000</sendBufferSize>
-                <receiveBufferSize>16000000</receiveBufferSize> -->
-                <!-- message size should much lower than segment_size,avoiding a high risk of data loss -->
-                <!-- <maxMessageSize>1472</maxMessageSize> -->
-                <!-- Size of the shared memory segment(in bytes) 512*1024 必须要远大于数据大小 -->
-                <!-- <segment_size>1024</segment_size> -->
-                <!-- The size of the listening port(in messages) 512 最多存储的消息个数,不小于实际数据数量,此处配置为约15K~2^14 -->
-                <port_queue_capacity>16384</port_queue_capacity>
-                <!-- 断开可用性检查间隔毫秒数 1000 -->
-                <healthy_check_timeout_ms>3000</healthy_check_timeout_ms>
-                <!-- rtps通讯调试导出文件路径, tcpdump hexadecimal text with raw ipv4 type -->
-                <!-- <rtps_dump_file>rtps-shm-hex-rawipv4-pcapng.dump</rtps_dump_file> -->
-            </transport_descriptor>
         </transport_descriptors>
         <participant profile_name="participant_profile" is_default_profile="true">
-            <!-- 参与者 domainId 取值范围[0,200] -->
             <domainId>0</domainId>
             <rtps>
                 <participantID>0</participantID>
                 <name>test-dds</name>
                 <propertiesPolicy>
                     <properties>
-                        <property>
-                            <!-- redis opt host;设置为单个字符串 0 视为禁用redis和sdk readDatas相关接口 -->
-                            <name>ro_host</name>
-                            <value>172.16.220.121</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- redis opt port -->
-                            <name>ro_port</name>
-                            <value>32000</value>
-                            <propagate>false</propagate>
-                        </property>
-                            <!-- redis opt user -->
-                        <!-- <property>
-                            <name>ro_user</name>
-                            <value></value>
-                            <propagate>false</propagate>
-                        </property> -->
-                        <property>
-                            <!-- redis opt pwd -->
-                            <name>ro_pwd</name>
-                            <value>Sgcc1234!</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- redis opt db index -->
-                            <name>ro_db_index</name>
-                            <value>0</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- redis pool opt pool size -->
-                            <name>rpo_pool_size</name>
-                            <value>3</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- redis pool opt wait_timeout ms -->
-                            <name>rpo_wait_timeout_ms</name>
-                            <value>10000</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- redis rid key prefix -->
-                            <name>r_key_prefix</name>
-                            <value>zykj:</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- redis get/hmget key batch -->
-                            <name>r_key_maxBatch</name>
-                            <value>1000</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- 是否启用主题过滤以便仅订阅指定的rid;注意,设置为false则查询测量数据接口需要明确指定查询测量列表 -->
-                            <name>sub_isFilteringRidOfTopic</name>
-                            <value>false</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- 16进制掩码;取低整数的位数(应是charMask:7的整数倍)作为新的整数;eg:低7*9=63=0x7FFFFFFFFFFFFFFF 或 低7*4=28位=0xFFFFFFF -->
-                            <name>sub_filterRidBitsMask</name>
-                            <value>0x7FFFFFFFFFFFFFFF</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <property>
-                            <!-- 启用主题过滤时,是否将包含在过滤集合内的rid视为有效值;设置为false则不再过滤集合内的rid视为有效值 -->
-                            <name>sub_isFilteringRidContainsIn</name>
-                            <value>true</value>
-                            <propagate>false</propagate>
-                        </property>
-                        <!-- Avoid local matching of this participant's own endpoints -->
                         <property>
                             <name>fastdds.ignore_local_endpoints</name>
                             <value>true</value>
@@ -378,7 +221,6 @@
                         <ignoreParticipantFlags>FILTER_SAME_PROCESS</ignoreParticipantFlags>
                         <!-- default. Simple discovery protocol as specified in the RTPS standard. -->
                         <!-- <discoveryProtocol>SIMPLE</discoveryProtocol> -->
-                        <!-- 启用发现服务需配置该项;仅使用共享内存shm时需禁用该项 -->
                         <!-- <discoveryProtocol>CLIENT</discoveryProtocol> -->
                         <discoveryServersList>
                             <!-- Set remote server configuration Prefix  -->
@@ -398,18 +240,6 @@
                                     </locator>
                                 </metatrafficUnicastLocatorList>
                             </RemoteServer>
-                            <!-- 多个发现服务prefix不能一样 -->
-                            <!-- <RemoteServer prefix="44.53.01.5f.45.50.52.4f.53.49.4d.41">
-                                <metatrafficUnicastLocatorList>
-                                    <locator>
-                                        <tcpv4>
-                                            <port>17481</port>
-                                            <physical_port>17481</physical_port>
-                                            <address>172.16.0.202</address>
-                                        </tcpv4>
-                                    </locator>
-                                </metatrafficUnicastLocatorList>
-                            </RemoteServer> -->
                         </discoveryServersList>
                         <!-- Set ping period to discoveryServer until they receive message reception acknowledgement -->
                         <clientAnnouncementPeriod>
@@ -433,7 +263,6 @@
                             <nanosec>0</nanosec>
                         </leaseAnnouncement>
                         <initialAnnouncements>
-                            <!--tcp 场景下建立连接的延迟较大,通过启动阶段的多次宣告initialAnnouncements加快连接-->
                             <count>5</count>
                             <period>
                                 <sec>2</sec>
@@ -450,7 +279,6 @@
                                 <address>239.255.0.1</address>
                             </udpv4>
                         </locator> -->
-                        <!--  tcp logical_port通过规范公式计算与参与者id关系极大;physical_port/address需要明确指定sub地址/pdp端口  -->
                         <!-- <locator>
                             <tcpv4>
                                 <port>27412</port>
@@ -475,8 +303,6 @@
                             </udpv4>
                         </locator>
                     </metatrafficMulticastLocatorList> -->
-                    <!-- 7400PB + 250DG * domainId + 10d3 + 2PG * participantId
-                        udp/tcp 需配置该项;仅使用共享内存shm时需禁用该项-->
                     <metatrafficUnicastLocatorList>
                         <!-- <locator>
                             <udpv4></udpv4>
@@ -494,8 +320,6 @@
                         </udpv4>
                     </locator>
                 </defaultMulticastLocatorList> -->
-                <!-- 7400PB + 250DG * domainId + 11d3 + 2PG * participantId
-                    udp/tcp 需配置该项;仅使用共享内存shm时需禁用该项-->
                 <defaultUnicastLocatorList>
                     <!-- <locator>
                         <udpv4></udpv4>
@@ -509,7 +333,6 @@
                     <!--
                     <domainIDGain>250</domainIDGain>
                     <domainIDGain>1000</domainIDGain>
-                    如果接受端口占用默认会重试次数为mutation_tries,每次把端口增加participantIDGain以便找到DataReader可用端口
                     <participantIDGain>2</participantIDGain>
                     <offsetd0>0</offsetd0>      meta multicast
                     <offsetd1>10</offsetd1>     meta unitcast
