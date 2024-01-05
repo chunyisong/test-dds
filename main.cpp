@@ -57,7 +57,7 @@ public:
             double subDPS = 1E-3 * totalSubDatas / totalSecs; // kilo datas per seconds
             double subOkRatio = 100 * _totalSubValidDatas / (totalSubDatas > 0 ? totalSubDatas : 1);
             double subLostRatio = 100 * _totalSubLostDatas / ((totalSubDatas > 0 ? totalSubDatas : 1) + _totalSubLostDatas);
-            EPROSIMA_LOG_WARNING(Test, "##pub stat totalSeconds:" << totalSecs << ",totalTopics:" << _totalSubTopics
+            EPROSIMA_LOG_WARNING(Test, "##sub stat totalSeconds:" << totalSecs << ",totalTopics:" << _totalSubTopics
                 << ",_currentMatchedPubs:" << _currentMatchedPubs << ",_cumulativeMatchedPubs:" << _cumulativeMatchedPubs << ",_totalSubValidDatas:" << _totalSubValidDatas << ",_totalSubDroppedDatas:" << _totalSubDroppedDatas << ",subOkRatio:" << subOkRatio << ",subLostRatio:"<<subLostRatio << ",subDPS:" << subDPS << "k/s");
         }
     }
