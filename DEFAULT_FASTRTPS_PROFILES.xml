@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="file:///Fast-DDS_ws/src/fastrtps/resources/xsd/fastRTPS_profiles.xsd"?>
 <dds>
+    <profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
         <data_writer profile_name="writer_profile" is_default_profile="true">
-            <!-- <ignore_non_matching_locators>true</ignore_non_matching_locators> -->
             <historyMemoryPolicy>PREALLOCATED</historyMemoryPolicy>
             <topic>
                 <historyQos>
@@ -11,19 +11,17 @@
                 </historyQos>
                 <resourceLimitsQos>
                     <max_samples_per_instance>1</max_samples_per_instance>
+                    <max_instances>2000000</max_instances>
                     <allocated_samples>1000</allocated_samples>
-                    <!-- <extra_samples>100</extra_samples> -->
                     <max_samples>0</max_samples>
                 </resourceLimitsQos>
             </topic>
             <qos>
                 <disable_heartbeat_piggyback>false</disable_heartbeat_piggyback>
                 <data_sharing>
-                    <!-- <kind>AUTOMATIC</kind> -->
                     <kind>OFF</kind>
                 </data_sharing>
                 <publishMode>
-                    <!-- <kind>ASYNCHRONOUS</kind> -->
                     <kind>SYNCHRONOUS</kind>
                 </publishMode>
                 <lifespan>
@@ -38,15 +36,11 @@
                         <nanosec>0</nanosec>
                     </period>
                 </deadline>
-                <!-- VOLATILE writer with disabled PositiveAcks crash -->
                 <durability>
                     <kind>VOLATILE</kind>
-                    <!-- <kind>TRANSIENT_LOCAL</kind> -->
                 </durability>
                 <reliability>
-                    <!-- <kind>BEST_EFFORT</kind> -->
                     <kind>RELIABLE</kind>
-                    <!-- reader/writer avoiding blocking too long -->
                     <max_blocking_time>
                         <sec>2</sec>
                         <nanosec>0</nanosec>
@@ -68,31 +62,7 @@
                         <nanosec>0</nanosec>
                     </announcement_period>
                 </liveliness>
-                <!-- <ownership>
-                    <kind>EXCLUSIVE</kind>
-                </ownership>
-                <ownershipStrength>
-                    <value>10</value>
-                </ownershipStrength> -->
             </qos>
-            <!-- <times>
-                <initialHeartbeatDelay>
-                    <sec>0</sec>
-                    <nanosec>50000000</nanosec>
-                </initialHeartbeatDelay>
-                <heartbeatPeriod>
-                    <sec></sec>
-                    <nanosec>10000000</nanosec>
-                </heartbeatPeriod>
-                <nackResponseDelay>
-                    <sec>0</sec>
-                    <nanosec>100000</nanosec>
-                </nackResponseDelay>
-                <nackSupressionDuration>
-                    <sec>0</sec>
-                    <nanosec>0</nanosec>
-                </nackSupressionDuration>
-            </times> -->
         </data_writer>
         <data_reader profile_name="reader_profile" is_default_profile="true">
             <historyMemoryPolicy>PREALLOCATED</historyMemoryPolicy>
@@ -104,16 +74,15 @@
                 <resourceLimitsQos>
                     <max_samples_per_instance>1</max_samples_per_instance>
                     <allocated_samples>1000</allocated_samples>
+                    <max_instances>2000000</max_instances>
                     <extra_samples>100</extra_samples>
                     <max_samples>0</max_samples>
                 </resourceLimitsQos>
             </topic>
             <qos>
                 <data_sharing>
-                    <!-- <kind>AUTOMATIC</kind> -->
                     <kind>OFF</kind>
                 </data_sharing>
-                <!-- sample expires duration to be removed from history and transient and persistent caches -->
                 <lifespan>
                     <duration>
                         <sec>DURATION_INFINITY</sec>
@@ -128,17 +97,14 @@
                 </deadline>
                 <durability>
                     <kind>VOLATILE</kind>
-                    <!-- <kind>TRANSIENT_LOCAL</kind> -->
                 </durability>
                 <reliability>
                     <kind>BEST_EFFORT</kind>
-                    <!-- <kind>RELIABLE</kind> -->
                 </reliability>
                 <disablePositiveAcks>
                     <enabled>true</enabled>
                 </disablePositiveAcks>
                 <liveliness>
-                    <!-- <kind>MANUAL_BY_PARTICIPANT</kind> -->
                     <kind>AUTOMATIC</kind>
                     <lease_duration>
                         <sec>DURATION_INFINITY</sec>
@@ -148,35 +114,16 @@
                         <nanosec>0</nanosec>
                     </announcement_period>
                 </liveliness>
-                <!-- <ownership>
-                    <kind>EXCLUSIVE</kind>
-                </ownership> -->
             </qos>
-            <!-- <times>
-                <initialAcknackDelay>
-                    <sec>0</sec>
-                    <nanosec>10000000</nanosec>
-                </initialAcknackDelay>
-                <heartbeatResponseDelay>
-                    <sec>0</sec>
-                    <nanosec>100000</nanosec>
-                </heartbeatResponseDelay>
-            </times> -->
         </data_reader>
         <transport_descriptors>
             <transport_descriptor>
                 <transport_id>transport_tcp4</transport_id>
                 <type>TCPv4</type>
                 <maxMessageSize>1300</maxMessageSize>
-                <!-- <sendBufferSize>16000000</sendBufferSize> -->
-                <!-- <receiveBufferSize>16000000</receiveBufferSize> -->
                 <interfaceWhiteList>
-                    <!-- <address>10.8.8.6</address> -->
                     <interface>lo</interface>
                 </interfaceWhiteList>
-                <!-- <wan_addr>80.80.55.44</wan_addr> -->
-                <!-- <keep_alive_frequency_ms>5000</keep_alive_frequency_ms>
-                <keep_alive_timeout_ms>15000</keep_alive_timeout_ms> -->
                 <listening_ports>
                     <port>18011</port>
                 </listening_ports>
@@ -204,24 +151,15 @@
                         <preallocated_number>0</preallocated_number>
                         <dynamic>true</dynamic>
                     </send_buffers>
-                    <!-- content_filter cannot be configured using XML (yet) -->
                 </allocation>
-                <!-- <sendSocketBufferSize>15000000</sendSocketBufferSize>
-                <listenSocketBufferSize>15000000</listenSocketBufferSize> -->
                 <userTransports>
-                    <!-- <transport_id>transport_shm</transport_id> -->
                     <transport_id>transport_tcp4</transport_id>
-                    <!-- <transport_id>transport_udp4</transport_id> -->
                 </userTransports>
                 <builtin>
-                    <!-- use Multicast PDP phase only;Multi pubs/subs try false -->
                     <avoid_builtin_multicast>true</avoid_builtin_multicast>
-                    <!-- <use_WriterLivelinessProtocol>true</use_WriterLivelinessProtocol> -->
                     <discovery_config>
                         <ignoreParticipantFlags>FILTER_SAME_PROCESS</ignoreParticipantFlags>
-                        <!-- default. Simple discovery protocol as specified in the RTPS standard. -->
-                        <!-- <discoveryProtocol>SIMPLE</discoveryProtocol> -->
-                        <!-- <discoveryProtocol>CLIENT</discoveryProtocol> -->
+                        <discoveryProtocol>CLIENT</discoveryProtocol>
                         <discoveryServersList>
                             <!-- Set remote server configuration Prefix  -->
                             <RemoteServer prefix="44.53.00.5f.45.50.52.4f.53.49.4d.41">
@@ -235,25 +173,21 @@
                                         <tcpv4>
                                             <port>17480</port>
                                             <physical_port>17480</physical_port>
-                                            <address>172.16.0.202</address>
+                                            <address>127.0.0.1</address>
                                         </tcpv4>
                                     </locator>
                                 </metatrafficUnicastLocatorList>
                             </RemoteServer>
                         </discoveryServersList>
-                        <!-- Set ping period to discoveryServer until they receive message reception acknowledgement -->
                         <clientAnnouncementPeriod>
                             <sec>5</sec>
                             <nanosec>0</nanosec>
                         </clientAnnouncementPeriod>
                         <EDP>SIMPLE</EDP>
                         <simpleEDP>
-                            <!-- participant only has datawriters so only create dataReader discovery related EDP endpoints-->
                             <PUBWRITER_SUBREADER>true</PUBWRITER_SUBREADER>
-                            <!-- participant only has dataReaders so only create dataWriter discovery related EDP endpoints-->
                             <PUBREADER_SUBWRITER>true</PUBREADER_SUBWRITER>
                         </simpleEDP>
-                        <!-- Indicates how long the DomainParticipant should consider remote DomainParticipants alive.Default 20s -->
                         <leaseDuration>
                             <sec>30</sec>
                             <nanosec>0</nanosec>
@@ -271,21 +205,6 @@
                         </initialAnnouncements>
                     </discovery_config>
                     <initialPeersList>
-                        <!-- Local network DDS default multicast to discover other participants in
-                        the same LAN,using External Locators, or not -->
-                        <!-- <locator>
-                            <udpv4>
-                                <port>57400</port>
-                                <address>239.255.0.1</address>
-                            </udpv4>
-                        </locator> -->
-                        <!-- <locator>
-                            <tcpv4>
-                                <port>27412</port>
-                                <physical_port>18020</physical_port>
-                                <address>172.16.220.8</address>
-                            </tcpv4>
-                        </locator> -->
                         <locator>
                             <tcpv4>
                                 <port>37410</port>
@@ -294,51 +213,19 @@
                             </tcpv4>
                         </locator>
                     </initialPeersList>
-                    <!-- 7400PB + 250DG * domainId + 0d0 -->
-                    <!-- <metatrafficMulticastLocatorList>
-                        <locator>
-                            <udpv4>
-                                <port>57400</port>
-                                <address>239.255.0.1</address>
-                            </udpv4>
-                        </locator>
-                    </metatrafficMulticastLocatorList> -->
                     <metatrafficUnicastLocatorList>
-                        <!-- <locator>
-                            <udpv4></udpv4>
-                        </locator> -->
                         <locator>
                             <tcpv4></tcpv4>
                         </locator>
                     </metatrafficUnicastLocatorList>
                 </builtin>
-                <!-- 7400PB + 250DG * domainId + 1d2 -->
-                <!-- <defaultMulticastLocatorList>
-                    <locator>
-                        <udpv4>
-                            <address>238.1.1.1</address>
-                        </udpv4>
-                    </locator>
-                </defaultMulticastLocatorList> -->
                 <defaultUnicastLocatorList>
-                    <!-- <locator>
-                        <udpv4></udpv4>
-                    </locator> -->
                     <locator>
                         <tcpv4></tcpv4>
                     </locator>
                 </defaultUnicastLocatorList>
                 <port>
                     <portBase>37400</portBase>
-                    <!--
-                    <domainIDGain>250</domainIDGain>
-                    <domainIDGain>1000</domainIDGain>
-                    <participantIDGain>2</participantIDGain>
-                    <offsetd0>0</offsetd0>      meta multicast
-                    <offsetd1>10</offsetd1>     meta unitcast
-                    <offsetd2>2</offsetd2>      user multicast
-                    <offsetd3>11</offsetd3>     user unnicast
-                        -->
                 </port>
             </rtps>
         </participant>
