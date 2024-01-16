@@ -159,6 +159,26 @@
                     <avoid_builtin_multicast>true</avoid_builtin_multicast>
                     <discovery_config>
                         <ignoreParticipantFlags>FILTER_SAME_PROCESS</ignoreParticipantFlags>
+                        <discoveryProtocol>CLIENT</discoveryProtocol>
+                        <discoveryServersList>
+                            <!-- Set remote server configuration Prefix  -->
+                            <RemoteServer prefix="44.53.00.5f.45.50.52.4f.53.49.4d.41">
+                                <metatrafficUnicastLocatorList>
+                                    <!-- Set SERVER's listening locator for PDP -->
+                                    <locator>
+                                        <!-- <udpv4>
+                                            <port>17480</port>
+                                            <address>172.16.220.121</address>
+                                        </udpv4> -->
+                                        <tcpv4>
+                                            <port>17480</port>
+                                            <physical_port>17480</physical_port>
+                                            <address>127.0.0.1</address>
+                                        </tcpv4>
+                                    </locator>
+                                </metatrafficUnicastLocatorList>
+                            </RemoteServer>
+                        </discoveryServersList>
                         <clientAnnouncementPeriod>
                             <sec>5</sec>
                             <nanosec>0</nanosec>
