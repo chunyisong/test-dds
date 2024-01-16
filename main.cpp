@@ -49,16 +49,16 @@ public:
             auto totalPubDatas = _totalPubOkDatas + _totalPubFailedDatas;
             double pubDPS = 1E-3 * totalPubDatas / totalSecs; // kilo datas per seconds
             double pubOkRatio = 100 * _totalPubOkDatas / (totalPubDatas > 0 ? totalPubDatas : 1);
-            EPROSIMA_LOG_WARNING(Test, "##pub stat totalSeconds:" << totalSecs << ",totalTopics:" << _totalPubTopics
-                << ",_currentMatchedPubs:" << _currentMatchedSubs << ",_cumulativeMatchedSubs:" << _cumulativeMatchedSubs << ",_totalPubOkDatas:" << _totalPubOkDatas << ",_totalPubFailedDatas:" << _totalPubFailedDatas << ",pubOkRatio:" << pubOkRatio << ",pubDPS:" << pubDPS << "k/s");
+            EPROSIMA_LOG_WARNING(Test, "##pub stat totalSeconds:" << totalSecs << "s,totalTopics:" << _totalPubTopics
+                << ",_currentMatchedSubs:" << _currentMatchedSubs << ",_cumulativeMatchedSubs:" << _cumulativeMatchedSubs << ",_totalPubOkDatas:" << _totalPubOkDatas << ",_totalPubFailedDatas:" << _totalPubFailedDatas << ",pubOkRatio:" << pubOkRatio << "%,pubDPS:" << pubDPS << "k/s");
         }
         if (_totalSubTopics > 0) {
             auto totalSubDatas = _totalSubDroppedDatas + _totalSubValidDatas;
             double subDPS = 1E-3 * totalSubDatas / totalSecs; // kilo datas per seconds
             double subOkRatio = 100 * _totalSubValidDatas / (totalSubDatas > 0 ? totalSubDatas : 1);
             double subLostRatio = 100 * _totalSubLostDatas / ((totalSubDatas > 0 ? totalSubDatas : 1) + _totalSubLostDatas);
-            EPROSIMA_LOG_WARNING(Test, "##sub stat totalSeconds:" << totalSecs << ",totalTopics:" << _totalSubTopics
-                << ",_currentMatchedPubs:" << _currentMatchedPubs << ",_cumulativeMatchedPubs:" << _cumulativeMatchedPubs << ",_totalSubValidDatas:" << _totalSubValidDatas << ",_totalSubDroppedDatas:" << _totalSubDroppedDatas << ",subOkRatio:" << subOkRatio << ",subLostRatio:"<<subLostRatio << ",subDPS:" << subDPS << "k/s");
+            EPROSIMA_LOG_WARNING(Test, "##sub stat totalSeconds:" << totalSecs << "s,totalTopics:" << _totalSubTopics
+                << ",_currentMatchedPubs:" << _currentMatchedPubs << ",_cumulativeMatchedPubs:" << _cumulativeMatchedPubs << ",_totalSubValidDatas:" << _totalSubValidDatas << ",_totalSubDroppedDatas:" << _totalSubDroppedDatas << ",subOkRatio:" << subOkRatio << "%,subLostRatio:"<<subLostRatio << ",subDPS:" << subDPS << "k/s");
         }
     }
 };
@@ -484,7 +484,7 @@ int main(int argc, char *argv[])
     }
     else {
         EPROSIMA_LOG_ERROR(Test, " Invalid args!usage:"
-            << "\npublish test: ./test-dds pub <totalTopics:200><ridsPerTopic:10000> <totalDatas:0>  <pubThreadCount:1> <durationMs:1> <publishMode:1>"
+            << "\npublish test: ./test-dds pub <totalTopics:200><ridsPerTopic:10000> <totalDatas:0>  <pubThreadCount:1> <durationMs:1> <publishMode:2>"
             << "\nsubscribe test: ./test-dds sub <totalTopics:200> <waitingLoops:0> "
         );
     }
