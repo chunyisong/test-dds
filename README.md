@@ -3,7 +3,7 @@ Deadlock appears be caused by write data and discovery entity threads using tcp 
 
 I write a simple test program test-dds to reproduce this bug.
 
-I tested test-dds with fastdds v2.13.1.Unfortunately,stucked deadlock reappeared! However,with this version, the deadlock is more difficult to trigger.Only starting more subscribers (200 readers per sub) and one publisher(200 writers) and not killing writers can not reproduce the issue (after about 30 trials of simple test,may be lucky).But following steps more likely trigger deadlock:
+I tested test-dds with fastdds.Unfortunately,stucked deadlock reappeared! However,with this version, the deadlock is more difficult to trigger.Only starting more subscribers (200 readers per sub) and one publisher(200 writers) and not killing writers can not reproduce the issue (after about 30 trials of simple test,may be lucky).But following steps more likely trigger deadlock:
 
 1. Start discovery server in one console (fast-discovery-server -i 0 -t 10.8.8.6 -q 17480)
 2. Edit DEFAULT_FASTRTPS_PROFILES.xml ,change listen port of tcpv4 to 0 ;
