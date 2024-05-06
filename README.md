@@ -27,10 +27,9 @@ Additionally,other tests produce same stucked dealock:
 
 Fast DDS version/commit
 
-FastDDS v2.13.1
+FastDDS v2.14.1(current master)[https://github.com/eProsima/Fast-DDS/commit/9928d1df72f9bd5e3a85ed9eb25702ea0c5a4ec7]
 
 Platform/Architecture
-Ubuntu Focal 20.04 amd64
+debian 10 amd64
 
-Transport layer
-TCPv4
+TCPv4/Reliable/DiscoveryServer
