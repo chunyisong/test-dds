@@ -36,10 +36,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     if(NOT SUPPORTS_CXX11)
         message(FATAL_ERROR "Compiler doesn't support C++11")
     endif()
-    # EXECUTE_PROCESS(COMMAND fastddsgen "-replace" "-d" "cxxclient" "dds_sdk.idl"
-    #     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
-    #     ERROR_VARIABLE fastddsgenErr OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ECHO STDOUT COMMAND_ERROR_IS_FATAL ANY
-    # )
+    EXECUTE_PROCESS(COMMAND fastddsgen "-replace" "-d" "cxxclient" "dds_sdk.idl"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        ERROR_VARIABLE fastddsgenErr OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ECHO STDOUT COMMAND_ERROR_IS_FATAL ANY
+    )
 endif()
 
 message(STATUS fastddsgenErr:${fastddsgenErr})
@@ -49,7 +49,7 @@ file(GLOB_RECURSE src_headers LIST_DIRECTORIES false "*.h" "*.hh" "*.hpp")
 
 message(STATUS src_cpps:${src_cpps},\nsrc_headers:${src_headers})
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../sdk_profile.xml ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTRTPS_PROFILES.xml @ONLY)
+configure_file(sdk_profile.xml ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTRTPS_PROFILES.xml @ONLY)
 
 add_executable(${PROJECT_NAME} ${src_cpps} ${src_headers})
 
@@ -63,10 +63,10 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 target_link_libraries(${PROJECT_NAME} fastrtps fastcdr)
 
-install(TARGETS ${PROJECT_NAME}
-    LIBRARY DESTINATION ${install_dir}/${PROJECT_NAME}
-    ARCHIVE DESTINATION ${install_dir}/${PROJECT_NAME}
-    RUNTIME DESTINATION ${install_dir}/${PROJECT_NAME}
-)
+# install(TARGETS ${PROJECT_NAME}
+#     LIBRARY DESTINATION ${install_dir}/${PROJECT_NAME}
+#     ARCHIVE DESTINATION ${install_dir}/${PROJECT_NAME}
+#     RUNTIME DESTINATION ${install_dir}/${PROJECT_NAME}
+# )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTRTPS_PROFILES.xml DESTINATION ${install_dir}/${PROJECT_NAME})
+# install(FILES ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTRTPS_PROFILES.xml DESTINATION ${install_dir}/${PROJECT_NAME})

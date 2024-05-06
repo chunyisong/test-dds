@@ -28,6 +28,8 @@ using namespace eprosima::fastrtps::rtps;
 
 class DDSListenerStat {
 public:
+    std::atomic_uint64_t _currentMatchedPars = 0;
+    std::atomic_uint64_t _cumulativeMatchedPars = 0;
     std::atomic_uint64_t _currentMatchedSubs = 0;
     std::atomic_uint64_t _cumulativeMatchedSubs = 0;
     std::atomic_uint64_t _totalPubOkDatas = 0;
@@ -50,7 +52,7 @@ public:
             double pubDPS = 1E-3 * totalPubDatas / totalSecs; // kilo datas per seconds
             double pubOkRatio = 100 * _totalPubOkDatas / (totalPubDatas > 0 ? totalPubDatas : 1);
             EPROSIMA_LOG_WARNING(Test, "##pub stat totalSeconds:" << totalSecs << "s,totalTopics:" << _totalPubTopics
-                << ",_currentMatchedSubs:" << _currentMatchedSubs << ",_cumulativeMatchedSubs:" << _cumulativeMatchedSubs << ",_totalPubOkDatas:" << _totalPubOkDatas << ",_totalPubFailedDatas:" << _totalPubFailedDatas << ",pubOkRatio:" << pubOkRatio << "%,pubDPS:" << pubDPS << "k/s");
+                << ",_currentMatchedSubs:" << _currentMatchedSubs << ",_cumulativeMatchedSubs:" << _cumulativeMatchedSubs << ",_currentMatchedParticipants:" << _currentMatchedPars << ",_cumulativeMatchedParticipants:" << _cumulativeMatchedPars << ",_totalPubOkDatas:" << _totalPubOkDatas << ",_totalPubFailedDatas:" << _totalPubFailedDatas << ",pubOkRatio:" << pubOkRatio << "%,pubDPS:" << pubDPS << "k/s");
         }
         if (_totalSubTopics > 0) {
             auto totalSubDatas = _totalSubDroppedDatas + _totalSubValidDatas;
@@ -58,7 +60,7 @@ public:
             double subOkRatio = 100 * _totalSubValidDatas / (totalSubDatas > 0 ? totalSubDatas : 1);
             double subLostRatio = 100 * _totalSubLostDatas / ((totalSubDatas > 0 ? totalSubDatas : 1) + _totalSubLostDatas);
             EPROSIMA_LOG_WARNING(Test, "##sub stat totalSeconds:" << totalSecs << "s,totalTopics:" << _totalSubTopics
-                << ",_currentMatchedPubs:" << _currentMatchedPubs << ",_cumulativeMatchedPubs:" << _cumulativeMatchedPubs << ",_totalSubValidDatas:" << _totalSubValidDatas << ",_totalSubDroppedDatas:" << _totalSubDroppedDatas << ",subOkRatio:" << subOkRatio << "%,subLostRatio:"<<subLostRatio << ",subDPS:" << subDPS << "k/s");
+                << ",_currentMatchedPubs:" << _currentMatchedPubs << ",_cumulativeMatchedPubs:" << _cumulativeMatchedPubs << ",_currentMatchedParticipants:" << _currentMatchedPars << ",_cumulativeMatchedParticipants:" << _cumulativeMatchedPars  << ",_totalSubValidDatas:" << _totalSubValidDatas << ",_totalSubDroppedDatas:" << _totalSubDroppedDatas << ",subOkRatio:" << subOkRatio << "%,subLostRatio:"<<subLostRatio << ",subDPS:" << subDPS << "k/s");
         }
     }
 };
@@ -66,16 +68,21 @@ public:
 class ParticipantListener : public DomainParticipantListener
 {
 public:
+    DDSListenerStat* stat;
+    ParticipantListener(DDSListenerStat* stat_) : DomainParticipantListener(), stat(stat_){}
     inline void on_participant_discovery(DomainParticipant* participant, ParticipantDiscoveryInfo&& info) override
     {
         switch (info.status)
         {
         case ParticipantDiscoveryInfo::DISCOVERED_PARTICIPANT:
-            EPROSIMA_LOG_WARNING(Test, "Discovered New DomainParticipant(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
+            ++stat->_currentMatchedPars;
+            ++stat->_cumulativeMatchedPars;
+            EPROSIMA_LOG_WARNING(Test, "Discovered New DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(new name:" << info.info.m_participantName << ",handle:" << info.info.m_key
                 << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
         case ParticipantDiscoveryInfo::REMOVED_PARTICIPANT:
+            --stat->_currentMatchedPars;
             EPROSIMA_LOG_WARNING(Test, "Removed A DomainParticipant(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
                 << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
                 << ",domainId:" << participant->get_domain_id() << ")");
@@ -86,6 +93,7 @@ public:
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
         case ParticipantDiscoveryInfo::DROPPED_PARTICIPANT:
+            --stat->_currentMatchedPars;
             EPROSIMA_LOG_WARNING(Test, "Dropped A DomainParticipant(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
                 << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
                 << ",domainId:" << participant->get_domain_id() << ")");
@@ -286,14 +294,14 @@ public:
             << ",instance_handle:" << status.last_instance_handle);
     }
 };
-DomainParticipant* createParticipant(size_t topicCount, std::vector<Topic*>& topicSeq)
+DomainParticipant* createParticipant(DDSListenerStat* stat,size_t topicCount, std::vector<Topic*>& topicSeq)
 {
     DomainParticipantQos pqos = PARTICIPANT_QOS_DEFAULT;
     pqos.name("Participant_pub");
     auto factory = DomainParticipantFactory::get_instance();
     factory->load_profiles();
     factory->get_default_participant_qos(pqos);
-    auto pListener_ = new ParticipantListener;
+    auto pListener_ = new ParticipantListener(stat);
     DomainParticipant* participant_ = factory->create_participant(0, pqos, pListener_, StatusMask::none());
     TypeSupport type_{ new MeasurementValuePubSubType()};
     type_.register_type(participant_);
@@ -327,7 +335,7 @@ int testPub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint32_t ridsPerTopi
     std::vector<DataWriter*> writerSeq;
     std::vector<Topic*> topicSeq;
     std::vector<std::string> nameSeq;
-    auto participant_ = participant ? participant : createParticipant(totalTopics, topicSeq);
+    auto participant_ = participant ? participant : createParticipant(stat,totalTopics, topicSeq);
     PublisherQos pubqos = PUBLISHER_QOS_DEFAULT;
     participant_->get_default_publisher_qos(pubqos);
     auto publisher_ = participant_->create_publisher(pubqos, nullptr);
@@ -430,7 +438,7 @@ int testSub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint64_t waitingLoop
     totalTopics = totalTopics > 0 ? totalTopics : 1; // all topics to subscribe data
     EPROSIMA_LOG_WARNING(Sub, "topcisSize:" << totalTopics << ",waitingLoops:" << waitingLoops);
     std::vector<Topic*> topicSeq;
-    auto participant_ = participant ? participant : createParticipant(totalTopics, topicSeq);
+    auto participant_ = participant ? participant : createParticipant(stat,totalTopics, topicSeq);
     SubscriberQos subqos = SUBSCRIBER_QOS_DEFAULT;
     participant_->get_default_subscriber_qos(subqos);
     auto subscriber_ = participant_->create_subscriber(subqos, nullptr);
@@ -479,12 +487,12 @@ int main(int argc, char *argv[])
         uint64_t totalDatas = argc > 4 ? std::stoull(argv[4]) : 0;
         uint16_t pubThreadCount = argc > 5 ? std::stoul(argv[5]) : 1;
         uint32_t durationMs = argc > 6 ? std::stoul(argv[6]) : 1;
-        int publishMode = argc > 7 ? std::stoi(argv[7]) : 2;
+        int publishMode = argc > 7 ? std::stoi(argv[7]) : 1;
         rt = testPub(stat, totalTopics, ridsPerTopic, totalDatas, pubThreadCount, durationMs, publishMode);
     }
     else {
         EPROSIMA_LOG_ERROR(Test, " Invalid args!usage:"
-            << "\npublish test: ./test-dds pub <totalTopics:200><ridsPerTopic:10000> <totalDatas:0>  <pubThreadCount:1> <durationMs:1> <publishMode:2>"
+            << "\npublish test: ./test-dds pub <totalTopics:200><ridsPerTopic:10000> <totalDatas:0>  <pubThreadCount:1> <durationMs:1> <publishMode:1>"
             << "\nsubscribe test: ./test-dds sub <totalTopics:200> <waitingLoops:0> "
         );
     }

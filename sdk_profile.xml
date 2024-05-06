@@ -99,7 +99,8 @@
                     <kind>VOLATILE</kind>
                 </durability>
                 <reliability>
-                    <kind>BEST_EFFORT</kind>
+                    <!-- <kind>BEST_EFFORT</kind> -->
+                    <kind>RELIABLE</kind>
                 </reliability>
                 <disablePositiveAcks>
                     <enabled>true</enabled>
@@ -125,7 +126,7 @@
                     <interface>lo</interface>
                 </interfaceWhiteList>
                 <listening_ports>
-                    <port>18011</port>
+                    <port>0</port>
                 </listening_ports>
                 <enable_tcp_nodelay>false</enable_tcp_nodelay>
                 <calculate_crc>false</calculate_crc>
@@ -204,7 +205,7 @@
                             </period>
                         </initialAnnouncements>
                     </discovery_config>
-                    <initialPeersList>
+                    <!-- <initialPeersList>
                         <locator>
                             <tcpv4>
                                 <port>37410</port>
@@ -212,7 +213,7 @@
                                 <address>127.0.0.1</address>
                             </tcpv4>
                         </locator>
-                    </initialPeersList>
+                    </initialPeersList> -->
                     <metatrafficUnicastLocatorList>
                         <locator>
                             <tcpv4></tcpv4>
