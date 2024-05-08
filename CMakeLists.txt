@@ -13,6 +13,8 @@ set(fastddsPrefix "/opt/FastDDS")
 # list(APPEND CMAKE_PREFIX_PATH "${fastddsPrefix}/share")
 list(APPEND CMAKE_PREFIX_PATH "${fastddsPrefix}")
 
+set(CMAKE_DEBUG_POSTFIX "_d")
+
 message(STATUS "****CMAKE_PREFIX_PATH:${CMAKE_PREFIX_PATH},CMAKE_CURRENT_SOURCE_DIR:${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Find requirements
