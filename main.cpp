@@ -83,23 +83,23 @@ public:
             break;
         case ParticipantDiscoveryInfo::REMOVED_PARTICIPANT:
             --stat->_currentMatchedPars;
-            EPROSIMA_LOG_WARNING(Test, "Removed A DomainParticipant(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
+            EPROSIMA_LOG_WARNING(Test, "Removed A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
                 << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
         case ParticipantDiscoveryInfo::CHANGED_QOS_PARTICIPANT:
-            EPROSIMA_LOG_WARNING(Test, "Qos Changed of A DomainParticipant(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
+            EPROSIMA_LOG_WARNING(Test, "Qos Changed of A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
                 << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
         case ParticipantDiscoveryInfo::DROPPED_PARTICIPANT:
             --stat->_currentMatchedPars;
-            EPROSIMA_LOG_WARNING(Test, "Dropped A DomainParticipant(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
+            EPROSIMA_LOG_WARNING(Test, "Dropped A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
                 << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
         case ParticipantDiscoveryInfo::IGNORED_PARTICIPANT:
-            EPROSIMA_LOG_WARNING(Test, "Ignored A DomainParticipant(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
+            EPROSIMA_LOG_WARNING(Test, "Ignored A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
                 << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
