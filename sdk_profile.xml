@@ -122,9 +122,15 @@
                 <transport_id>transport_tcp4</transport_id>
                 <type>TCPv4</type>
                 <maxMessageSize>1300</maxMessageSize>
-                <interfaceWhiteList>
+                <!-- <interfaceWhiteList>
                     <interface>lo</interface>
-                </interfaceWhiteList>
+                </interfaceWhiteList> -->
+                <interfaces>
+                    <allowlist>
+                        <interface name="lo" netmask_filter="AUTO"/>
+                        <!-- <interface name="192.168.1.10" netmask_filter="OFF"/> -->
+                    </allowlist>
+                </interfaces>
                 <listening_ports>
                     <port>0</port>
                 </listening_ports>
@@ -156,6 +162,8 @@
                 <userTransports>
                     <transport_id>transport_tcp4</transport_id>
                 </userTransports>
+                <!-- <ignore_non_matching_locators>true</ignore_non_matching_locators> -->
+                <netmask_filter>AUTO</netmask_filter>
                 <builtin>
                     <avoid_builtin_multicast>true</avoid_builtin_multicast>
                     <discovery_config>
