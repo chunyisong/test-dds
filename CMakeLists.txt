@@ -1,19 +1,13 @@
 
 cmake_minimum_required(VERSION 3.16.3)
 
-project(test-dds VERSION 1 LANGUAGES CXX)
+project(test-dds VERSION 1.0 ${VerifyCXX})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-# set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(fastddsPrefix "/opt/FastDDS")
-# if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-#     set(fastddsPrefix "${fastddsPrefix}_Debug")
-# endif()
-# list(APPEND CMAKE_PREFIX_PATH "${fastddsPrefix}/share")
-list(APPEND CMAKE_PREFIX_PATH "${fastddsPrefix}")
 
-set(CMAKE_DEBUG_POSTFIX "_d")
+set(CMAKE_DEBUG_POSTFIX d)
 
 message(STATUS "****CMAKE_PREFIX_PATH:${CMAKE_PREFIX_PATH},CMAKE_CURRENT_SOURCE_DIR:${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -63,12 +57,19 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     $<$<AND:$<NOT:$<BOOL:${WIN32}>>,$<STREQUAL:"${CMAKE_BUILD_TYPE}","Debug">>:__DEBUG>
     $<$<BOOL:${INTERNAL_DEBUG}>:__INTERNALDEBUG> # Internal debug activated.
 )
-target_link_libraries(${PROJECT_NAME} fastrtps fastcdr)
+set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+target_link_libraries(${PROJECT_NAME} PRIVATE fastrtps fastcdr)
 
-# install(TARGETS ${PROJECT_NAME}
-#     LIBRARY DESTINATION ${install_dir}/${PROJECT_NAME}
-#     ARCHIVE DESTINATION ${install_dir}/${PROJECT_NAME}
-#     RUNTIME DESTINATION ${install_dir}/${PROJECT_NAME}
-# )
+set(my_install_dir ../dist/${PROJECT_NAME})
+if(install_dir)
+    set(my_install_dir ${install_dir}/${PROJECT_NAME})
+endif()
 
-# install(FILES ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTRTPS_PROFILES.xml DESTINATION ${install_dir}/${PROJECT_NAME})
+install(TARGETS ${PROJECT_NAME}
+    LIBRARY DESTINATION ${my_install_dir}/bin
+    ARCHIVE DESTINATION ${my_install_dir}/bin
+    RUNTIME DESTINATION ${my_install_dir}/bin
+    # PUBLIC_HEADER DESTINATION include
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTRTPS_PROFILES.xml DESTINATION ${my_install_dir}/bin)

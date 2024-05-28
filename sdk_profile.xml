@@ -3,7 +3,7 @@
 <dds>
     <profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
         <data_writer profile_name="writer_profile" is_default_profile="true">
-            <historyMemoryPolicy>PREALLOCATED</historyMemoryPolicy>
+            <historyMemoryPolicy>PREALLOCATED_WITH_REALLOC</historyMemoryPolicy>
             <topic>
                 <historyQos>
                     <kind>KEEP_LAST</kind>
@@ -65,7 +65,7 @@
             </qos>
         </data_writer>
         <data_reader profile_name="reader_profile" is_default_profile="true">
-            <historyMemoryPolicy>PREALLOCATED</historyMemoryPolicy>
+            <historyMemoryPolicy>PREALLOCATED_WITH_REALLOC</historyMemoryPolicy>
             <topic>
                 <historyQos>
                     <kind>KEEP_LAST</kind>
@@ -125,10 +125,11 @@
                 <!-- <interfaceWhiteList>
                     <interface>lo</interface>
                 </interfaceWhiteList> -->
+                <!-- <netmask_filter>ON</netmask_filter> -->
                 <interfaces>
                     <allowlist>
-                        <interface name="lo" netmask_filter="AUTO"/>
-                        <!-- <interface name="192.168.1.10" netmask_filter="OFF"/> -->
+                        <!-- <interface name="lo" netmask_filter="OFF"/> -->
+                        <interface name="10.8.8.6" netmask_filter="AUTO"/>
                     </allowlist>
                 </interfaces>
                 <listening_ports>
@@ -182,7 +183,7 @@
                                         <tcpv4>
                                             <port>17480</port>
                                             <physical_port>17480</physical_port>
-                                            <address>127.0.0.1</address>
+                                            <address>10.8.8.6</address>
                                         </tcpv4>
                                     </locator>
                                 </metatrafficUnicastLocatorList>

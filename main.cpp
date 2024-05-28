@@ -1,4 +1,4 @@
-
+#include <csignal>
 
 #include <thread>
 #include <chrono>
@@ -22,6 +22,14 @@
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
 #include "dds_sdkPubSubTypes.h"
+
+volatile sig_atomic_t g_signal_status = 0;
+void sigint_handler(int signum)
+{
+    // Locking here is counterproductive
+    g_signal_status = signum;
+    // g_signal_cv.notify_one();
+}
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastrtps::rtps;
@@ -294,22 +302,21 @@ public:
             << ",instance_handle:" << status.last_instance_handle);
     }
 };
-DomainParticipant* createParticipant(DDSListenerStat* stat,size_t topicCount, std::vector<Topic*>& topicSeq)
+DomainParticipant* createParticipant(ParticipantListener* pListener_,size_t topicCount, std::vector<Topic*>& topicSeq)
 {
     DomainParticipantQos pqos = PARTICIPANT_QOS_DEFAULT;
     pqos.name("Participant_pub");
     auto factory = DomainParticipantFactory::get_instance();
     factory->load_profiles();
     factory->get_default_participant_qos(pqos);
-    auto pListener_ = new ParticipantListener(stat);
     DomainParticipant* participant_ = factory->create_participant(0, pqos, pListener_, StatusMask::none());
-    TypeSupport type_{ new MeasurementValuePubSubType()};
+    TypeSupport type_{ new MeasurementValuePubSubType() };
     type_.register_type(participant_);
     TopicQos tqos = TOPIC_QOS_DEFAULT;
     participant_->get_default_topic_qos(tqos);
     for (size_t j = 0; j < topicCount; ++j)
     {
-        std::string meaName{"Topic_"+std::to_string(j)};
+        std::string meaName{"MvTopic_"+std::to_string(j)};
         auto topic = participant_->create_topic(meaName, type_.get_type_name(), tqos);
         assert(topic != nullptr);
         topicSeq.push_back(topic);
@@ -335,24 +342,29 @@ int testPub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint32_t ridsPerTopi
     std::vector<DataWriter*> writerSeq;
     std::vector<Topic*> topicSeq;
     std::vector<std::string> nameSeq;
-    auto participant_ = participant ? participant : createParticipant(stat,totalTopics, topicSeq);
+    ParticipantListener pListener(stat);
+    auto participant_ = participant ? participant : createParticipant(&pListener,totalTopics, topicSeq);
     PublisherQos pubqos = PUBLISHER_QOS_DEFAULT;
     participant_->get_default_publisher_qos(pubqos);
     auto publisher_ = participant_->create_publisher(pubqos, nullptr);
     DataWriterQos wqos = DATAWRITER_QOS_DEFAULT;
     publisher_->get_default_datawriter_qos(wqos);
-    auto wListener_ = new WriterListener(stat);
+    WriterListener wListener(stat);
     stat->_totalPubTopics = topicSeq.size();
     for (auto topic : topicSeq) {
-        auto writer = publisher_->create_datawriter(topic, wqos, wListener_);
+        auto writer = publisher_->create_datawriter(topic, wqos, &wListener);
         assert(writer != nullptr);
         writerSeq.push_back(writer);
         nameSeq.push_back(topic->get_name());
         writer->enable();
     }
+
     if (publishMode == 0) {
         EPROSIMA_LOG_WARNING(Pub, "publishMode ==0 !!Will Never publish data!!");
         while (publishMode == 0) {
+            if (0 != g_signal_status) {
+                break;
+            }
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
     }
@@ -364,6 +376,9 @@ int testPub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint32_t ridsPerTopi
         auto begin = std::chrono::steady_clock::now();
         while (writeCount < writeCountPerTh || writeCountPerTh==0)
         {
+            if (0 != g_signal_status) {
+                break;
+            }
             mv.rid(ridIndex);
             mv.q(writerIndex);
             if (writerIndex % 2 ==0) {
@@ -397,8 +412,12 @@ int testPub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint32_t ridsPerTopi
             std::this_thread::sleep_until(begin + writeCount * sleepNs);
         }
     };
+
     while (true)
     {
+        if (0 != g_signal_status) {
+            break;
+        }
         if (publishMode == 1 && stat->_cumulativeMatchedSubs == 0) {
             static int count = 0;
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -415,13 +434,29 @@ int testPub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint32_t ridsPerTopi
                 thes.push_back(std::thread(writeData));
             }
             uint64_t sleepMs = 1000, statInterMs = 10 * 1E3, statLoops = 0;
+            uint64_t lastTotalPubFailed  = 0;
+            uint64_t lastTotalPubOk = 0;
             while (totalDatas == 0 || (stat->_totalPubFailedDatas + stat->_totalPubOkDatas) < totalDatas)
             {
+                if (0 != g_signal_status) {
+                    break;
+                }
                 std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
                 if ((++statLoops * sleepMs) >= statInterMs)
                 {
                     stat->printStat();
                     statLoops = 0;
+                    if (stat->_currentMatchedSubs == 0 && stat->_cumulativeMatchedSubs > 0) {
+                        EPROSIMA_LOG_WARNING(Test, "\t****### No Matched Readers!Check dds connection!***###");
+                    } else if (stat->_currentMatchedPars == 0 && stat->_cumulativeMatchedPars > 0) {
+                        EPROSIMA_LOG_WARNING(Test, "\t****### No Matched Participants!Check dds connection!***###");
+                    } else if (lastTotalPubOk == stat->_totalPubOkDatas && stat->_currentMatchedSubs > 0) {
+                        EPROSIMA_LOG_WARNING(Test, "\t****### No Published Ok Datas!Check dds connection!***###");
+                    } else if (lastTotalPubFailed < stat->_totalPubFailedDatas) {
+                        EPROSIMA_LOG_WARNING(Test, "\t****### Some Published Dropped/Failed Datas!Check dds connection!***###");
+                    }
+                    lastTotalPubFailed = stat->_totalPubFailedDatas;
+                    lastTotalPubOk = stat->_totalPubOkDatas;
                 }
             }
             for (auto& th : thes) {
@@ -430,37 +465,65 @@ int testPub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint32_t ridsPerTopi
             break;
         }
     }
+    EPROSIMA_LOG_WARNING(Test, "### Participant" << participant_->get_qos().name().c_str() << " will be deleted!*** g_signal_status:" << g_signal_status);
+    Log::Flush();
+    std::cout.flush();
     participant_->delete_contained_entities();
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
+    participant_ = nullptr;
     return 0;
 }
 int testSub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint64_t waitingLoops = 10,DomainParticipant* participant = nullptr) {
     totalTopics = totalTopics > 0 ? totalTopics : 1; // all topics to subscribe data
     EPROSIMA_LOG_WARNING(Sub, "topcisSize:" << totalTopics << ",waitingLoops:" << waitingLoops);
     std::vector<Topic*> topicSeq;
-    auto participant_ = participant ? participant : createParticipant(stat,totalTopics, topicSeq);
+    ParticipantListener pListener(stat);
+    auto participant_ = participant ? participant : createParticipant(&pListener,totalTopics, topicSeq);
     SubscriberQos subqos = SUBSCRIBER_QOS_DEFAULT;
     participant_->get_default_subscriber_qos(subqos);
     auto subscriber_ = participant_->create_subscriber(subqos, nullptr);
     DataReaderQos rqos = DATAREADER_QOS_DEFAULT;
     subscriber_->get_default_datareader_qos(rqos);
-    auto rListener_ = new ReaderListener(stat);
+    ReaderListener rListener(stat);
     stat->_totalSubTopics = topicSeq.size();
     for (auto topic : topicSeq) {
-        auto reader = subscriber_->create_datareader(topic, rqos, rListener_);
+        auto reader = subscriber_->create_datareader(topic, rqos, &rListener);
         assert(reader != nullptr);
         reader->enable();
     }
+
     uint64_t sleepMs = 2000, statInterMs = 10 * 1E3, statLoops = 0, loops = 0;
+    uint64_t lastTotalDataRecvs = 0;
+    uint64_t lastTotalDataLosts = 0;
+    uint64_t lastTotalDataDropps = 0;
     while (++loops < waitingLoops || waitingLoops == 0)
     {
+        if (0 != g_signal_status) {
+            break;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
         if ((++statLoops * sleepMs) >= statInterMs)
         {
             stat->printStat();
             statLoops = 0;
+            if (stat->_currentMatchedPubs == 0 && stat->_cumulativeMatchedPubs > 0) {
+                EPROSIMA_LOG_WARNING(Test, "\t****### No Matched Writers!Check dds connection!***###");
+            } else if (stat->_currentMatchedPars == 0 && stat->_cumulativeMatchedPars > 0) {
+                EPROSIMA_LOG_WARNING(Test, "\t****### No Matched Participants!Check dds connection!***###");
+            } else if (lastTotalDataRecvs == stat->_totalSubValidDatas && stat->_currentMatchedPubs > 0) {
+                EPROSIMA_LOG_WARNING(Test, "\t****### No Received Datas!Check dds connection!***###");
+            } else if (lastTotalDataLosts < stat->_totalSubLostDatas || lastTotalDataDropps < stat->_totalSubDroppedDatas) {
+                EPROSIMA_LOG_WARNING(Test, "\t****### Some Datas are Losted/Dropped!Check dds connection!***###");
+            }
+            // 休眠之后且每次统计开始记录上次统计信息
+            lastTotalDataRecvs = stat->_totalSubValidDatas;
+            lastTotalDataLosts = stat->_totalSubLostDatas;
+            lastTotalDataDropps = stat->_totalSubDroppedDatas;
         }
     }
+    EPROSIMA_LOG_WARNING(Test, "### Participant" << participant_->get_qos().name().c_str() << " will be deleted!*** g_signal_status:" << g_signal_status);
+    Log::Flush();
+    std::cout.flush();
     participant_->delete_contained_entities();
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
     return 0;
@@ -474,13 +537,21 @@ int main(int argc, char *argv[])
     }
     Log::Log::ReportFilenames(true);
     Log::Log::SetVerbosity(Log::Log::Kind::Info);
+
+    signal(SIGINT, sigint_handler); // SIGINT:2, Ctrl+C
+    signal(SIGTERM, sigint_handler); // SIGTERM:15, kill -15
+#ifndef _WIN32
+    signal(SIGQUIT, sigint_handler); // SIGQUIT:3, Ctrl+\ 类似SIGINT,但进程会产生core文件
+    signal(SIGHUP, sigint_handler); // SIGHUP:1, console/terminal close
+#endif // ifndef _WIN32
+
     int rt = 0;
-    auto stat = new DDSListenerStat;
+    DDSListenerStat stat;
     std::string target = argc > 1 ? argv[1] : "";
     uint16_t totalTopics = argc > 2 ? std::stoul(argv[2]) : 200;
     if (target == "sub") {
         uint64_t waitingLoops = argc > 3 ? std::stoull(argv[3]) : 0;
-        rt = testSub(stat, totalTopics, waitingLoops);
+        rt = testSub(&stat, totalTopics, waitingLoops);
     }
     else if(target == "pub") {
         uint32_t ridsPerTopic = argc > 3 ? std::stoul(argv[3]) : 10000;
@@ -488,7 +559,7 @@ int main(int argc, char *argv[])
         uint16_t pubThreadCount = argc > 5 ? std::stoul(argv[5]) : 1;
         uint32_t durationMs = argc > 6 ? std::stoul(argv[6]) : 1;
         int publishMode = argc > 7 ? std::stoi(argv[7]) : 1;
-        rt = testPub(stat, totalTopics, ridsPerTopic, totalDatas, pubThreadCount, durationMs, publishMode);
+        rt = testPub(&stat, totalTopics, ridsPerTopic, totalDatas, pubThreadCount, durationMs, publishMode);
     }
     else {
         EPROSIMA_LOG_ERROR(Test, " Invalid args!usage:"
@@ -496,6 +567,8 @@ int main(int argc, char *argv[])
             << "\nsubscribe test: ./test-dds sub <totalTopics:200> <waitingLoops:0> "
         );
     }
-    EPROSIMA_LOG_WARNING(Test, "***  main exit!threadId:" << std::this_thread::get_id() << "rt:" << rt);
+    EPROSIMA_LOG_WARNING(Test, "***  main exit!threadId:" << std::this_thread::get_id() << "rt:" << rt<<",*** g_signal_status:" << g_signal_status);
+    Log::Flush();
+    std::cout.flush();
     return 0;
 }
