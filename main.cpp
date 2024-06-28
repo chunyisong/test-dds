@@ -397,7 +397,7 @@ int testPub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint32_t ridsPerTopi
             }
             else {
                 ++stat->_totalPubFailedDatas;
-                EPROSIMA_LOG_ERROR(Pub, "writer->write_w_timestamp Failed!returnCode:" << rt() << ",rid:" << ridIndex << ",topic:"<<topicSeq[writerIndex]);
+                EPROSIMA_LOG_ERROR(Pub, "writer->write_w_timestamp Failed!returnCode:" << rt() << ",rid:" << ridIndex << ",topic:"<<topicSeq[writerIndex]->get_name());
             }
             ++writeCount;
             if (++ridIndex >= ridsPerTopic) {
@@ -562,9 +562,9 @@ int main(int argc, char *argv[])
         rt = testPub(&stat, totalTopics, ridsPerTopic, totalDatas, pubThreadCount, durationMs, publishMode);
     }
     else {
-        EPROSIMA_LOG_ERROR(Test, " Invalid args!usage:"
-            << "\npublish test: ./test-dds pub <totalTopics:200><ridsPerTopic:10000> <totalDatas:0>  <pubThreadCount:1> <durationMs:1> <publishMode:1>"
-            << "\nsubscribe test: ./test-dds sub <totalTopics:200> <waitingLoops:0> "
+        EPROSIMA_LOG_ERROR(Test, " DEFAULT_FASTRTPS_PROFILES.xml must exist in execute dir!Usage:"
+            << "\npublish test: ./test-fastdds pub <totalTopics:200><ridsPerTopic:10000> <totalDatas:0>  <pubThreadCount:1> <durationMs:1> <publishMode:1>"
+            << "\nsubscribe test: ./test-fastdds sub <totalTopics:200> <waitingLoops:0> "
         );
     }
     EPROSIMA_LOG_WARNING(Test, "***  main exit!threadId:" << std::this_thread::get_id() << "rt:" << rt<<",*** g_signal_status:" << g_signal_status);

@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.16.3)
 
-project(test-dds VERSION 1.0 ${VerifyCXX})
+project(test-fastdds VERSION 1.0 ${VerifyCXX})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(CMAKE_VERBOSE_MAKEFILE ON)

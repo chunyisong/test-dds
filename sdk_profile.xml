@@ -139,12 +139,32 @@
                 <calculate_crc>false</calculate_crc>
                 <check_crc>false</check_crc>
             </transport_descriptor>
+            <transport_descriptor>
+                <transport_id>transport_udp4</transport_id>
+                <type>UDPv4</type>
+                <non_blocking_send>false</non_blocking_send>
+                <!-- <output_port>37001</output_port> -->
+                <interfaces>
+                    <allowlist>
+                        <!-- <interface name="lo" netmask_filter="OFF"/> -->
+                        <interface name="10.8.8.6" netmask_filter="AUTO"/>
+                    </allowlist>
+                </interfaces>
+            </transport_descriptor>
+            <transport_descriptor>
+                <transport_id>transport_shm</transport_id>
+                <!-- Users with same uid/gid have can access files in /dev/shm/ -->
+                <type>SHM</type>
+                <port_queue_capacity>16384</port_queue_capacity>
+                <healthy_check_timeout_ms>3000</healthy_check_timeout_ms>
+                <!-- <rtps_dump_file>rtps-shm-hex-rawipv4-pcapng.dump</rtps_dump_file> -->
+            </transport_descriptor>
         </transport_descriptors>
         <participant profile_name="participant_profile" is_default_profile="true">
             <domainId>0</domainId>
             <rtps>
                 <participantID>0</participantID>
-                <name>test-dds</name>
+                <name>test-fastdds</name>
                 <propertiesPolicy>
                     <properties>
                         <property>
@@ -178,7 +198,7 @@
                                     <locator>
                                         <!-- <udpv4>
                                             <port>17480</port>
-                                            <address>172.16.220.121</address>
+                                            <address>10.8.8.6</address>
                                         </udpv4> -->
                                         <tcpv4>
                                             <port>17480</port>
@@ -219,19 +239,21 @@
                             <tcpv4>
                                 <port>37410</port>
                                 <physical_port>18010</physical_port>
-                                <address>127.0.0.1</address>
+                                <address>10.8.8.6</address>
                             </tcpv4>
                         </locator>
                     </initialPeersList> -->
                     <metatrafficUnicastLocatorList>
                         <locator>
                             <tcpv4></tcpv4>
+                            <!-- <udpv4></udpv4> -->
                         </locator>
                     </metatrafficUnicastLocatorList>
                 </builtin>
                 <defaultUnicastLocatorList>
                     <locator>
                         <tcpv4></tcpv4>
+                        <!-- <udpv4></udpv4> -->
                     </locator>
                 </defaultUnicastLocatorList>
                 <port>
