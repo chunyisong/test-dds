@@ -7,8 +7,8 @@ I tested test-fastdds with fastdds.Unfortunately,stucked deadlock reappeared! Ho
 
 1. Start discovery server in one console (fast-discovery-server -i 0 -t 10.8.8.6 -q 30801)
 2. Edit DEFAULT_FASTRTPS_PROFILES.xml ,change listen port of tcpv4 to 0 ;
-3. Start two subscriber(2000 readers per sub) in two new consoles (./test-fastdds sub 2000);
-4. Start one publisher (2000 writers) in new console (./test-fastdds pub 2000);
+3. Start one publisher (2000 writers) in new console (./test-fastdds pub 2000);(Now maybe server or writers have been stucked!)
+4. Start two subscriber(2000 readers per sub) in two new consoles (./test-fastdds sub 2000)
 5. Wait for matching,and then more likely discovery server or writers are sucked and deadlock may occur because of incorrect matching number (if no deadlock, kill and restart publisher once more).
 
 1. Sometimes "Matching unexisting participant from writer" error occured (line 1062 in /workspace/fastdds/src/fastrtps/src/cpp/rtps/builtin/discovery/database/DiscoveryDataBase.cpp ) after killing publisher.
