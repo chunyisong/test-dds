@@ -42,16 +42,10 @@
                 <reliability>
                     <kind>RELIABLE</kind>
                     <max_blocking_time>
-                        <sec>2</sec>
+                        <sec>1</sec>
                         <nanosec>0</nanosec>
                     </max_blocking_time>
                 </reliability>
-                <disablePositiveAcks>
-                    <enabled>true</enabled>
-                    <duration>
-                        <sec>1</sec>
-                    </duration>
-                </disablePositiveAcks>
                 <liveliness>
                     <kind>AUTOMATIC</kind>
                     <lease_duration>
@@ -102,9 +96,6 @@
                     <!-- <kind>BEST_EFFORT</kind> -->
                     <kind>RELIABLE</kind>
                 </reliability>
-                <disablePositiveAcks>
-                    <enabled>true</enabled>
-                </disablePositiveAcks>
                 <liveliness>
                     <kind>AUTOMATIC</kind>
                     <lease_duration>
@@ -119,27 +110,6 @@
         </data_reader>
         <transport_descriptors>
             <transport_descriptor>
-                <transport_id>transport_tcp4</transport_id>
-                <type>TCPv4</type>
-                <maxMessageSize>1300</maxMessageSize>
-                <!-- <interfaceWhiteList>
-                    <interface>lo</interface>
-                </interfaceWhiteList> -->
-                <!-- <netmask_filter>ON</netmask_filter> -->
-                <interfaces>
-                    <allowlist>
-                        <!-- <interface name="lo" netmask_filter="OFF"/> -->
-                        <interface name="10.8.8.6" netmask_filter="AUTO"/>
-                    </allowlist>
-                </interfaces>
-                <listening_ports>
-                    <port>0</port>
-                </listening_ports>
-                <enable_tcp_nodelay>false</enable_tcp_nodelay>
-                <calculate_crc>false</calculate_crc>
-                <check_crc>false</check_crc>
-            </transport_descriptor>
-            <transport_descriptor>
                 <transport_id>transport_udp4</transport_id>
                 <type>UDPv4</type>
                 <non_blocking_send>false</non_blocking_send>
@@ -150,6 +120,19 @@
                         <interface name="10.8.8.6" netmask_filter="AUTO"/>
                     </allowlist>
                 </interfaces>
+            </transport_descriptor>
+            <transport_descriptor>
+                <transport_id>transport_tcp4</transport_id>
+                <type>TCPv4</type>
+                <interfaces>
+                    <allowlist>
+                        <!-- <interface name="lo" netmask_filter="OFF"/> -->
+                        <interface name="10.8.8.6" netmask_filter="AUTO"/>
+                    </allowlist>
+                </interfaces>
+                <listening_ports>
+                    <port>0</port>
+                </listening_ports>
             </transport_descriptor>
             <transport_descriptor>
                 <transport_id>transport_shm</transport_id>
@@ -182,6 +165,7 @@
                 </allocation>
                 <userTransports>
                     <transport_id>transport_tcp4</transport_id>
+                    <!-- <transport_id>transport_udp4</transport_id> -->
                 </userTransports>
                 <!-- <ignore_non_matching_locators>true</ignore_non_matching_locators> -->
                 <netmask_filter>AUTO</netmask_filter>
@@ -197,12 +181,12 @@
                                     <!-- Set SERVER's listening locator for PDP -->
                                     <locator>
                                         <!-- <udpv4>
-                                            <port>17480</port>
+                                            <port>30802</port>
                                             <address>10.8.8.6</address>
                                         </udpv4> -->
                                         <tcpv4>
-                                            <port>17480</port>
-                                            <physical_port>17480</physical_port>
+                                            <port>30801</port>
+                                            <physical_port>30801</physical_port>
                                             <address>10.8.8.6</address>
                                         </tcpv4>
                                     </locator>
@@ -246,15 +230,19 @@
                     <metatrafficUnicastLocatorList>
                         <locator>
                             <tcpv4></tcpv4>
-                            <!-- <udpv4></udpv4> -->
                         </locator>
+                    <!-- <locator>
+                        <uppv4></udpv4>
+                    </locator> -->
                     </metatrafficUnicastLocatorList>
                 </builtin>
                 <defaultUnicastLocatorList>
                     <locator>
                         <tcpv4></tcpv4>
-                        <!-- <udpv4></udpv4> -->
                     </locator>
+                    <!-- <locator>
+                        <uppv4></udpv4>
+                    </locator> -->
                 </defaultUnicastLocatorList>
                 <port>
                     <portBase>37400</portBase>

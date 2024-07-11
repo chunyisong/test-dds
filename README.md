@@ -3,16 +3,13 @@ Deadlock appears be caused by write data and discovery entity threads using tcp 
 
 I write a simple test program test-fastdds to reproduce this bug.
 
-I tested test-fastdds with fastdds.Unfortunately,stucked deadlock reappeared! However,with this version, the deadlock is more difficult to trigger.Only starting more subscribers (200 readers per sub) and one publisher(200 writers) and not killing writers can not reproduce the issue (after about 30 trials of simple test,may be lucky).But following steps more likely trigger deadlock:
+I tested test-fastdds with fastdds.Unfortunately,stucked deadlock reappeared! However,with this version, the deadlock is more difficult to trigger.Only starting more subscribers (2000 readers per sub) and one publisher(2000 writers).More topics more likely to reproduce deadlock,so the number of topics from before 200 to now 2000.But following steps more likely trigger deadlock:
 
-1. Start discovery server in one console (fast-discovery-server -i 0 -t 10.8.8.6 -q 17480)
+1. Start discovery server in one console (fast-discovery-server -i 0 -t 10.8.8.6 -q 30801)
 2. Edit DEFAULT_FASTRTPS_PROFILES.xml ,change listen port of tcpv4 to 0 ;
-3. Start two subscriber(200 readers per sub) in two new consoles (./test-fastdds sub);
-4. Start one publisher (200 writers) in new console (./test-fastdds pub);
-5. Wait 30 seconds and kill publisher process and restart publisher,then more likely deadlock may occur (if no deadlock, kill and restart publisher once more),**and write operation are stucked as follows:
-![image](https://github.com/eProsima/Fast-DDS/assets/7147583/345b6d3e-04e7-420a-b55c-634380bee5f5)
-Actually,the publisher process is killed and restarted once,so only 200 writer topics,but the subscribers still had 400 writers.
-Additionally,other issues as follows through tests:
+3. Start two subscriber(2000 readers per sub) in two new consoles (./test-fastdds sub 2000);
+4. Start one publisher (2000 writers) in new console (./test-fastdds pub 2000);
+5. Wait for matching,and then more likely discovery server or writers are sucked and deadlock may occur because of incorrect matching number (if no deadlock, kill and restart publisher once more).
 
 1. Sometimes "Matching unexisting participant from writer" error occured (line 1062 in /workspace/fastdds/src/fastrtps/src/cpp/rtps/builtin/discovery/database/DiscoveryDataBase.cpp ) after killing publisher.
 2. Sometimes or When Discovery server error occured ,the server will never drop killed parcipant.
@@ -27,7 +24,7 @@ Additionally,other tests produce same stucked dealock:
 
 Fast DDS version/commit
 
-FastDDS v2.14.1(current master)[https://github.com/eProsima/Fast-DDS/commit/9928d1df72f9bd5e3a85ed9eb25702ea0c5a4ec7]
+FastDDS v2.14.2
 
 Platform/Architecture
 debian 10 amd64
