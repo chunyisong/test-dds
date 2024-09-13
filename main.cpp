@@ -7,8 +7,6 @@
 #include <fastdds/dds/domain/DomainParticipantListener.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
-#include <fastrtps/attributes/ParticipantAttributes.h>
-#include <fastrtps/attributes/PublisherAttributes.h>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/topic/TopicDataType.hpp>
@@ -21,7 +19,7 @@
 #include <fastdds/dds/subscriber/SampleInfo.hpp>
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
-#include "dds_sdkPubSubTypes.h"
+#include "dds_sdkPubSubTypes.hpp"
 
 volatile sig_atomic_t g_signal_status = 0;
 void sigint_handler(int signum)
@@ -32,7 +30,7 @@ void sigint_handler(int signum)
 }
 
 using namespace eprosima::fastdds::dds;
-using namespace eprosima::fastrtps::rtps;
+using namespace eprosima::fastdds::rtps;
 
 class DDSListenerStat {
 public:
@@ -78,90 +76,83 @@ class ParticipantListener : public DomainParticipantListener
 public:
     DDSListenerStat* stat;
     ParticipantListener(DDSListenerStat* stat_) : DomainParticipantListener(), stat(stat_){}
-    inline void on_participant_discovery(DomainParticipant* participant, ParticipantDiscoveryInfo&& info) override
-    {
-        switch (info.status)
+    inline void on_participant_discovery(DomainParticipant* participant, ParticipantDiscoveryStatus status, const ParticipantBuiltinTopicData& info, bool& should_be_ignored) override {
+        should_be_ignored = false;
+        switch (status)
         {
-        case ParticipantDiscoveryInfo::DISCOVERED_PARTICIPANT:
+        case ParticipantDiscoveryStatus::DISCOVERED_PARTICIPANT:
             ++stat->_currentMatchedPars;
             ++stat->_cumulativeMatchedPars;
-            EPROSIMA_LOG_WARNING(Test, "Discovered New DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(new name:" << info.info.m_participantName << ",handle:" << info.info.m_key
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
+            EPROSIMA_LOG_WARNING(Test, "Discovered New DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(new name:" << info.participant_name.c_str() << ",guid:" << info.guid <<",domainId:"<< info.domain_id
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
-        case ParticipantDiscoveryInfo::REMOVED_PARTICIPANT:
+        case ParticipantDiscoveryStatus::REMOVED_PARTICIPANT:
             --stat->_currentMatchedPars;
-            EPROSIMA_LOG_WARNING(Test, "Removed A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
+            EPROSIMA_LOG_WARNING(Test, "Removed A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.participant_name.c_str() << ",guid:" << info.guid <<",domainId:"<< info.domain_id
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
-        case ParticipantDiscoveryInfo::CHANGED_QOS_PARTICIPANT:
-            EPROSIMA_LOG_WARNING(Test, "Qos Changed of A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
+        case ParticipantDiscoveryStatus::CHANGED_QOS_PARTICIPANT:
+            EPROSIMA_LOG_WARNING(Test, "Qos Changed of A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.participant_name.c_str() << ",guid:" << info.guid <<",domainId:"<< info.domain_id
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
-        case ParticipantDiscoveryInfo::DROPPED_PARTICIPANT:
+        case ParticipantDiscoveryStatus::DROPPED_PARTICIPANT:
             --stat->_currentMatchedPars;
-            EPROSIMA_LOG_WARNING(Test, "Dropped A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
+            EPROSIMA_LOG_WARNING(Test, "Dropped A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.participant_name.c_str() << ",guid:" << info.guid <<",domainId:"<< info.domain_id
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
-        case ParticipantDiscoveryInfo::IGNORED_PARTICIPANT:
-            EPROSIMA_LOG_WARNING(Test, "Ignored A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.info.m_participantName << ",handle:" << info.info.m_key
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle()
+        case ParticipantDiscoveryStatus::IGNORED_PARTICIPANT:
+            EPROSIMA_LOG_WARNING(Test, "Ignored A DomainParticipant!_currentMatchedPars:" << stat->_currentMatchedPars << ",_cumulativeMatchedPars:" << stat->_cumulativeMatchedPars << "(name:" << info.participant_name.c_str() << ",guid:" << info.guid <<",domainId:"<< info.domain_id
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid()
                 << ",domainId:" << participant->get_domain_id() << ")");
             break;
         }
     }
-    inline virtual void on_publisher_discovery(DomainParticipant* participant, WriterDiscoveryInfo&& info) override
-    {
-        switch (info.status)
+    inline virtual void on_data_writer_discovery(DomainParticipant* participant, WriterDiscoveryStatus status, const PublicationBuiltinTopicData& info, bool& should_be_ignored) override {
+        should_be_ignored = false;
+        switch (status)
         {
-        case WriterDiscoveryInfo::DISCOVERED_WRITER:
-            EPROSIMA_LOG_WARNING(Test, "Discovered New DataWriter(topic:" << info.info.topicName() << ",type:" << info.info.typeName() << ",userDefinedId:" << info.info.userDefinedId() << ",handle:" << info.info.key() << ",participantHandle:" << info.info.RTPSParticipantKey()
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
+        case WriterDiscoveryStatus::DISCOVERED_WRITER:
+            EPROSIMA_LOG_WARNING(Test, "Discovered New DataWriter(topic:" << info.topic_name.c_str() << ",type:" << info.type_name.c_str() << ",guid:" << info.guid << ",participantGuid:" << info.participant_guid
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid() << ",domainId:" << participant->get_domain_id() << ")");
             break;
-        case WriterDiscoveryInfo::CHANGED_QOS_WRITER:
-            EPROSIMA_LOG_WARNING(Test, "Qos Changed of A DataWriter(topic:" << info.info.topicName() << ",type:" << info.info.typeName() << ",userDefinedId:" << info.info.userDefinedId() << ",handle:" << info.info.key() << ",participantHandle:" << info.info.RTPSParticipantKey()
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
+        case WriterDiscoveryStatus::CHANGED_QOS_WRITER:
+            EPROSIMA_LOG_WARNING(Test, "Qos Changed of A DataWriter(topic:" << info.topic_name.c_str() << ",type:" << info.type_name.c_str() << ",guid:" << info.guid << ",participantGuid:" << info.participant_guid
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid() << ",domainId:" << participant->get_domain_id() << ")");
             break;
-        case WriterDiscoveryInfo::REMOVED_WRITER:
-            EPROSIMA_LOG_WARNING(Test, "Removed A DataWriter(topic:" << info.info.topicName() << ",type:" << info.info.typeName() << ",userDefinedId:" << info.info.userDefinedId() << ",handle:" << info.info.key() << ",participantHandle:" << info.info.RTPSParticipantKey()
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
+        case WriterDiscoveryStatus::REMOVED_WRITER:
+            EPROSIMA_LOG_WARNING(Test, "Removed A DataWriter(topic:" << info.topic_name.c_str() << ",type:" << info.type_name.c_str() << ",guid:" << info.guid << ",participantGuid:" << info.participant_guid
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid() << ",domainId:" << participant->get_domain_id() << ")");
             break;
-        case WriterDiscoveryInfo::IGNORED_WRITER:
-            EPROSIMA_LOG_WARNING(Test, "Ignored A DataWriter(topic:" << info.info.topicName() << ",type:" << info.info.typeName() << ",userDefinedId:" << info.info.userDefinedId() << ",handle:" << info.info.key() << ",participantHandle:" << info.info.RTPSParticipantKey()
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
-            break;
-        }
-    }
-    inline virtual void on_subscriber_discovery(DomainParticipant* participant, ReaderDiscoveryInfo&& info) override
-    {
-        switch (info.status) {
-        case ReaderDiscoveryInfo::DISCOVERED_READER:
-            EPROSIMA_LOG_WARNING(Test, "Discovered New DataReader(topic:" << info.info.topicName() << ",type:" << info.info.typeName() << ",userDefinedId:" << info.info.userDefinedId() << ",handle:" << info.info.key() << ",participantHandle:" << info.info.RTPSParticipantKey()
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
-            break;
-        case ReaderDiscoveryInfo::CHANGED_QOS_READER:
-            EPROSIMA_LOG_WARNING(Test, "Qos Changed of A DataReader(topic:" << info.info.topicName() << ",type:" << info.info.typeName() << ",userDefinedId:" << info.info.userDefinedId() << ",handle:" << info.info.key() << ",participantHandle:" << info.info.RTPSParticipantKey()
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
-            break;
-        case ReaderDiscoveryInfo::REMOVED_READER:
-            EPROSIMA_LOG_WARNING(Test, "Removed A DataReader(topic:" << info.info.topicName() << ",type:" << info.info.typeName() << ",userDefinedId:" << info.info.userDefinedId() << ",handle:" << info.info.key() << ",participantHandle:" << info.info.RTPSParticipantKey()
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
-            break;
-        case ReaderDiscoveryInfo::IGNORED_READER:
-            EPROSIMA_LOG_WARNING(Test, "Ignored A DataReader(topic:" << info.info.topicName() << ",type:" << info.info.typeName() << ",userDefinedId:" << info.info.userDefinedId() << ",handle:" << info.info.key() << ",participantHandle:" << info.info.RTPSParticipantKey()
-                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
+        case WriterDiscoveryStatus::IGNORED_WRITER:
+            EPROSIMA_LOG_WARNING(Test, "Ignored A DataWriter(topic:" << info.topic_name.c_str() << ",type:" << info.type_name.c_str() << ",guid:" << info.guid << ",participantGuid:" << info.participant_guid
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid() << ",domainId:" << participant->get_domain_id() << ")");
             break;
         }
     }
-    inline virtual void on_type_discovery(DomainParticipant* participant, const SampleIdentity& request_sample_id,
-        const eprosima::fastrtps::string_255& topic, const eprosima::fastrtps::types::TypeIdentifier* /*identifier*/,
-        const eprosima::fastrtps::types::TypeObject* /*object*/, eprosima::fastrtps::types::DynamicType_ptr /*dyn_type*/) override
-    {
-        EPROSIMA_LOG_WARNING(Test, "Discoverd New data type(topic:" << topic << ",writerGuid:" << request_sample_id.writer_guid()
-            << "),currentParticipant(name:" << participant->get_participant_names().front() << ",handle:" << participant->get_instance_handle() << ",domainId:" << participant->get_domain_id() << ")");
+    inline virtual void on_data_reader_discovery(DomainParticipant* participant, ReaderDiscoveryStatus status, const SubscriptionBuiltinTopicData& info, bool& should_be_ignored) override {
+        should_be_ignored = false;
+        switch (status) {
+        case ReaderDiscoveryStatus::DISCOVERED_READER:
+            EPROSIMA_LOG_WARNING(Test, "Discovered New DataReader(topic:" << info.topic_name.c_str() << ",type:" << info.type_name.c_str() << ",guid:" << info.guid << ",participantGuid:" << info.participant_guid
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid() << ",domainId:" << participant->get_domain_id() << ")");
+            break;
+        case ReaderDiscoveryStatus::CHANGED_QOS_READER:
+            EPROSIMA_LOG_WARNING(Test, "Qos Changed of A DataReader(topic:" << info.topic_name.c_str() << ",type:" << info.type_name.c_str() << ",guid:" << info.guid << ",participantGuid:" << info.participant_guid
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid() << ",domainId:" << participant->get_domain_id() << ")");
+            break;
+        case ReaderDiscoveryStatus::REMOVED_READER:
+            EPROSIMA_LOG_WARNING(Test, "Removed A DataReader(topic:" << info.topic_name.c_str() << ",type:" << info.type_name.c_str() << ",guid:" << info.guid << ",participantGuid:" << info.participant_guid
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid() << ",domainId:" << participant->get_domain_id() << ")");
+            break;
+        case ReaderDiscoveryStatus::IGNORED_READER:
+            EPROSIMA_LOG_WARNING(Test, "Ignored A DataReader(topic:" << info.topic_name.c_str() << ",type:" << info.type_name.c_str() << ",guid:" << info.guid << ",participantGuid:" << info.participant_guid
+                << "),currentParticipant(name:" << participant->get_participant_names().front() << ",guid:" << participant->guid() << ",domainId:" << participant->get_domain_id() << ")");
+            break;
+        }
     }
 };
 class WriterListener : public DataWriterListener {
@@ -209,9 +200,9 @@ public:
         while (true)
         {
             ReturnCode_t returnCode = reader->take(loanSamples_, loanInfos_);
-            if(returnCode != ReturnCode_t::RETCODE_OK){
-                if(returnCode != ReturnCode_t::RETCODE_NO_DATA){
-                    EPROSIMA_LOG_ERROR(Test, "Reader take failed! ReturnCode_t:" << returnCode() << ",topic:" << reader->get_topicdescription()->get_name() << ",reader:" << reader->guid());
+            if(returnCode != RETCODE_OK){
+                if(returnCode != RETCODE_NO_DATA){
+                    EPROSIMA_LOG_ERROR(Test, "Reader take failed! ReturnCode_t:" << returnCode << ",topic:" << reader->get_topicdescription()->get_name() << ",reader:" << reader->guid());
                 }
                 reader->return_loan(loanSamples_, loanInfos_);
                 break;
@@ -388,16 +379,16 @@ int testPub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint32_t ridsPerTopi
                 mv.v().dv(threadCount);
             }
             auto t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            eprosima::fastrtps::Time_t mvTime((int32_t)(t * 1.0E-6), 0);
+            eprosima::fastdds::dds::Time_t mvTime((int32_t)(t * 1.0E-6), 0);
             mvTime.nanosec = (uint32_t)(t - mvTime.seconds * 1000000ULL)*1000;
             auto writer = writerSeq[writerIndex];
             auto rt = writer->write_w_timestamp((void *)(&mv), eprosima::fastdds::dds::HANDLE_NIL, mvTime);
-            if (rt == ReturnCode_t::RETCODE_OK){
+            if (rt == RETCODE_OK){
                 ++stat->_totalPubOkDatas;
             }
             else {
                 ++stat->_totalPubFailedDatas;
-                EPROSIMA_LOG_ERROR(Pub, "writer->write_w_timestamp Failed!returnCode:" << rt() << ",rid:" << ridIndex << ",topic:"<<topicSeq[writerIndex]->get_name());
+                EPROSIMA_LOG_ERROR(Pub, "writer->write_w_timestamp Failed!returnCode:" << rt << ",rid:" << ridIndex << ",topic:"<<topicSeq[writerIndex]->get_name());
             }
             ++writeCount;
             if (++ridIndex >= ridsPerTopic) {
@@ -521,7 +512,7 @@ int testSub(DDSListenerStat* stat,uint16_t totalTopics = 1, uint64_t waitingLoop
             lastTotalDataDropps = stat->_totalSubDroppedDatas;
         }
     }
-    EPROSIMA_LOG_WARNING(Test, "### Participant" << participant_->get_qos().name().c_str() << " will be deleted!*** g_signal_status:" << g_signal_status);
+    EPROSIMA_LOG_WARNING(Test, "### Participant" << participant_->get_qos().name().c_str() << " will be deleted!*** g_signal_status:" << g_signal_status << ",loops:" << loops);
     Log::Flush();
     std::cout.flush();
     participant_->delete_contained_entities();

@@ -12,7 +12,7 @@ set(CMAKE_DEBUG_POSTFIX d)
 message(STATUS "****CMAKE_PREFIX_PATH:${CMAKE_PREFIX_PATH},CMAKE_CURRENT_SOURCE_DIR:${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Find requirements
-if(NOT fastrtps_FOUND)
+if(NOT fastdds_FOUND)
     find_package(foonathan_memory REQUIRED)
     find_package(fastcdr REQUIRED)
     get_target_property(FastrptsStatic fastcdr TYPE)
@@ -22,7 +22,7 @@ if(NOT fastrtps_FOUND)
         endif()
         message(STATUS "****FastrptsStatic:${FastrptsStatic}, OPENSSL_USE_STATIC_LIBS:${OPENSSL_USE_STATIC_LIBS}")
     endif()
-    find_package(fastrtps REQUIRED)
+    find_package(fastdds REQUIRED)
 endif()
 
 #Check C++11
@@ -45,7 +45,7 @@ file(GLOB_RECURSE src_headers LIST_DIRECTORIES false "*.h" "*.hh" "*.hpp")
 
 message(STATUS src_cpps:${src_cpps},\nsrc_headers:${src_headers})
 
-configure_file(sdk_profile.xml ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTRTPS_PROFILES.xml @ONLY)
+configure_file(sdk_profile.xml ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTDDS_PROFILES.xml @ONLY)
 
 add_executable(${PROJECT_NAME} ${src_cpps} ${src_headers})
 
@@ -58,7 +58,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     $<$<BOOL:${INTERNAL_DEBUG}>:__INTERNALDEBUG> # Internal debug activated.
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-target_link_libraries(${PROJECT_NAME} PRIVATE fastrtps fastcdr)
+target_link_libraries(${PROJECT_NAME} PRIVATE fastdds fastcdr)
 
 set(my_install_dir ../dist/${PROJECT_NAME})
 if(install_dir)
@@ -72,4 +72,4 @@ install(TARGETS ${PROJECT_NAME}
     # PUBLIC_HEADER DESTINATION include
 )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTRTPS_PROFILES.xml DESTINATION ${my_install_dir}/bin)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/DEFAULT_FASTDDS_PROFILES.xml DESTINATION ${my_install_dir}/bin)

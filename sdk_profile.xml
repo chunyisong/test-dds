@@ -147,6 +147,8 @@
             <domainId>0</domainId>
             <rtps>
                 <participantID>0</participantID>
+                <!-- guid prefx for discover server ,optional -->
+                <!-- <prefix>44.53.00.5f.45.50.52.4f.53.49.4d.41</prefix> -->
                 <name>test-fastdds</name>
                 <propertiesPolicy>
                     <properties>
@@ -175,23 +177,18 @@
                         <ignoreParticipantFlags>FILTER_SAME_PROCESS</ignoreParticipantFlags>
                         <discoveryProtocol>CLIENT</discoveryProtocol>
                         <discoveryServersList>
-                            <!-- Set remote server configuration Prefix  -->
-                            <RemoteServer prefix="44.53.00.5f.45.50.52.4f.53.49.4d.41">
-                                <metatrafficUnicastLocatorList>
-                                    <!-- Set SERVER's listening locator for PDP -->
-                                    <locator>
-                                        <!-- <udpv4>
-                                            <port>30802</port>
-                                            <address>10.8.8.6</address>
-                                        </udpv4> -->
-                                        <tcpv4>
-                                            <port>30801</port>
-                                            <physical_port>30801</physical_port>
-                                            <address>10.8.8.6</address>
-                                        </tcpv4>
-                                    </locator>
-                                </metatrafficUnicastLocatorList>
-                            </RemoteServer>
+                            <!-- Set target ds SERVER's listening locator list for PDP -->
+                            <locator>
+                                <!-- <udpv4>
+                                    <port>30802</port>
+                                    <address>10.8.8.6</address>
+                                </udpv4> -->
+                                <tcpv4>
+                                    <port>30801</port>
+                                    <physical_port>30801</physical_port>
+                                    <address>10.8.8.6</address>
+                                </tcpv4>
+                            </locator>
                         </discoveryServersList>
                         <clientAnnouncementPeriod>
                             <sec>5</sec>
