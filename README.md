@@ -24,7 +24,7 @@ Additionally,other tests produce same stucked dealock:
 
 Fast DDS version/commit
 
-FastDDS v2.14.2
+FastDDS v3.0.1
 
 Platform/Architecture
 debian 10 amd64
